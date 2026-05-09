@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jewellery ERP – UI Preview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #D4AF37;
+    --gold-light: #F5C518;
+    --dark: #1A1A2E;
+    --surface: #FAF9F6;
+    --error: #E53935;
+    --success: #43A047;
+    --card-radius: 12px;
+  }
+
+  body {
+    background: #e8e8e8;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    padding: 24px;
+    min-height: 100vh;
+  }
+
+  h1 {
+    text-align: center;
+    color: var(--dark);
+    margin-bottom: 8px;
+    font-size: 22px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 32px;
+    font-size: 13px;
+  }
+
+  .screens-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .screen-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .screen-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Phone frame */
+  .phone {
+    width: 320px;
+    height: 640px;
+    background: #fff;
+    border-radius: 36px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.25), inset 0 0 0 2px #ccc;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* Status bar */
+  .status-bar {
+    height: 28px;
+    background: var(--dark);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.7);
+    flex-shrink: 0;
+  }
+
+  /* App bar */
+  .app-bar {
+    height: 52px;
+    background: var(--dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    color: var(--gold);
+    font-weight: 600;
+    font-size: 16px;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .app-bar .trailing {
+    position: absolute;
+    right: 12px;
+    display: flex;
+    gap: 4px;
+  }
+
+  .app-bar .trailing .icon-btn {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold);
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  /* Scroll area */
+  .scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--surface);
+  }
+
+  .scroll-area::-webkit-scrollbar { width: 3px; }
+  .scroll-area::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    height: 60px;
+    background: #fff;
+    border-top: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-shrink: 0;
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 9px;
+    color: #999;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 8px;
+    transition: color 0.2s;
+  }
+
+  .nav-item.active {
+    color: var(--gold);
+    background: rgba(212,175,55,0.1);
+  }
+
+  .nav-item svg { width: 22px; height: 22px; }
+
+  /* ─── LOGIN SCREEN ─── */
+  .login-screen {
+    height: 100%;
+    background: var(--dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+  }
+
+  .app-logo {
+    width: 80px; height: 80px;
+    background: var(--gold);
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px;
+    margin-bottom: 20px;
+  }
+
+  .login-screen h2 {
+    color: var(--gold);
+    font-size: 24px;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .login-screen .tagline {
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    margin-bottom: 32px;
+  }
+
+  .form-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    width: 100%;
+  }
+
+  .form-field {
+    margin-bottom: 14px;
+  }
+
+  .form-field label {
+    font-size: 11px;
+    color: #666;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .form-field .input-wrap {
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    background: #fafafa;
+    font-size: 13px;
+    color: #333;
+  }
+
+  .form-field .input-wrap .prefix {
+    color: #999;
+    font-size: 12px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    height: 46px;
+    background: var(--gold);
+    color: var(--dark);
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  /* ─── DASHBOARD ─── */
+  .segment-bar {
+    display: flex;
+    margin: 12px;
+    border: 1.5px solid var(--gold);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .segment-btn {
+    flex: 1;
+    height: 36px;
+    background: transparent;
+    border: none;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--gold);
+  }
+
+  .segment-btn.active {
+    background: var(--gold);
+    color: var(--dark);
+    font-weight: 700;
+  }
+
+  .metric-card {
+    background: #fff;
+    border-radius: var(--card-radius);
+    padding: 14px 16px;
+    margin: 0 12px 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .metric-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .metric-label {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 2px;
+  }
+
+  .metric-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--dark);
+  }
+
+  .metric-sub {
+    font-size: 11px;
+    color: #aaa;
+  }
+
+  .two-col {
+    display: flex;
+    gap: 10px;
+    margin: 0 12px 10px;
+  }
+
+  .two-col .metric-card {
+    flex: 1;
+    margin: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .inventory-card {
+    background: #fff;
+    border-radius: var(--card-radius);
+    padding: 14px 16px;
+    margin: 0 12px 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+
+  .inventory-card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 10px;
+  }
+
+  .inv-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 13px;
+    color: #444;
+    border-bottom: 1px solid #f5f5f5;
+  }
+
+  .inv-row:last-child { border-bottom: none; }
+
+  .chip {
+    background: rgba(212,175,55,0.12);
+    color: var(--dark);
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  /* ─── INVENTORY ─── */
+  .search-bar {
+    margin: 10px 12px;
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    background: #fff;
+    font-size: 13px;
+    color: #999;
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    padding: 0 12px 10px;
+    overflow-x: auto;
+  }
+
+  .filter-chip {
+    height: 30px;
+    padding: 0 14px;
+    border-radius: 20px;
+    border: 1.5px solid #ddd;
+    background: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    color: #555;
+  }
+
+  .filter-chip.active {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--dark);
+    font-weight: 700;
+  }
+
+  .ornament-card {
+    background: #fff;
+    border-radius: var(--card-radius);
+    padding: 12px 14px;
+    margin: 0 12px 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .ornament-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    background: rgba(212,175,55,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .ornament-info { flex: 1; }
+
+  .ornament-name { font-size: 14px; font-weight: 600; color: var(--dark); }
+  .ornament-sub { font-size: 11px; color: #888; margin-top: 2px; }
+  .ornament-price { font-size: 14px; font-weight: 700; color: var(--gold); }
+
+  .badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+
+  .badge-green { background: #e8f5e9; color: #43A047; }
+  .badge-grey { background: #f5f5f5; color: #888; }
+
+  /* ─── BILLING ─── */
+  .billing-body {
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
+  }
+
+  .billing-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--dark);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .billing-sub {
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .bill-type-card {
+    width: 100%;
+    border-radius: 16px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .bill-type-card:hover { transform: scale(1.01); }
+
+  .bill-type-card.green {
+    border: 2px solid #43A047;
+    background: rgba(67,160,71,0.05);
+  }
+
+  .bill-type-card.blue {
+    border: 2px solid #1565C0;
+    background: rgba(21,101,192,0.05);
+  }
+
+  .bill-icon {
+    width: 52px; height: 52px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+
+  .bill-icon.green { background: rgba(67,160,71,0.15); }
+  .bill-icon.blue { background: rgba(21,101,192,0.15); }
+
+  .bill-title { font-size: 17px; font-weight: 700; }
+  .bill-title.green { color: #43A047; }
+  .bill-title.blue { color: #1565C0; }
+
+  .bill-desc { font-size: 12px; color: #888; margin-top: 2px; }
+
+  .arrow { font-size: 14px; margin-left: auto; }
+  .arrow.green { color: #43A047; }
+  .arrow.blue { color: #1565C0; }
+
+  /* ─── CUSTOMERS ─── */
+  .list-tile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #fff;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--dark);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .tile-content { flex: 1; }
+  .tile-title { font-size: 14px; font-weight: 600; color: var(--dark); }
+  .tile-sub { font-size: 12px; color: #888; margin-top: 1px; }
+
+  .fab {
+    position: absolute;
+    bottom: 72px;
+    right: 16px;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--dark);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  /* ─── RATES ─── */
+  .rate-card {
+    background: #fff;
+    border-radius: var(--card-radius);
+    padding: 12px 14px;
+    margin: 0 12px 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .rate-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .rate-label { font-size: 14px; color: #333; flex: 1; }
+
+  .rate-value {
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .stale-banner {
+    margin: 10px 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #fff3e0;
+    border: 1px solid #FF9800;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #E65100;
+  }
+
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dark);
+    margin: 10px 12px 6px;
+  }
+
+  /* ─── NAV ICONS ─── */
+  .icon { font-style: normal; }
+
+  .padding-body { padding: 10px 0; }
+</style>
+</head>
+<body>
+
+<h1>💎 Jewellery ERP — Mobile UI Preview</h1>
+<p class="subtitle">Flutter app · Dark Navy + Gold theme · Role-based navigation</p>
+
+<div class="screens-row">
+
+  <!-- ── LOGIN ── -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Login</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>●●● WiFi 🔋</span>
+      </div>
+      <div style="flex:1; overflow:hidden;">
+        <div class="login-screen">
+          <div class="app-logo">💎</div>
+          <h2>Jewellery ERP</h2>
+          <div class="tagline">Staff Login</div>
+          <div class="form-card">
+            <div class="form-field">
+              <label>Phone Number</label>
+              <div class="input-wrap">
+                📞 <span class="prefix">+91</span> <span style="color:#ccc">9876543210</span>
+              </div>
+            </div>
+            <div class="form-field">
+              <label>Password</label>
+              <div class="input-wrap">
+                🔒 <span style="color:#ccc">••••••••</span>
+                <span style="margin-left:auto;color:#aaa;font-size:16px">👁</span>
+              </div>
+            </div>
+            <button class="btn-primary">Login</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DASHBOARD ── -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Dashboard</div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>●●● WiFi 🔋</span></div>
+      <div class="app-bar">
+        Dashboard
+        <div class="trailing"><div class="icon-btn">🔄</div></div>
+      </div>
+      <div class="scroll-area">
+        <div class="padding-body">
+          <div class="segment-bar">
+            <button class="segment-btn active">Today</button>
+            <button class="segment-btn">Week</button>
+            <button class="segment-btn">Month</button>
+            <button class="segment-btn">Year</button>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon" style="background:rgba(212,175,55,0.15)">💰</div>
+            <div>
+              <div class="metric-label">Total Revenue</div>
+              <div class="metric-value">₹2,47,500</div>
+            </div>
+          </div>
+
+          <div class="two-col">
+            <div class="metric-card">
+              <div class="metric-icon" style="background:rgba(67,160,71,0.15)">🧾</div>
+              <div>
+                <div class="metric-label">Pakka Sales</div>
+                <div class="metric-value" style="color:#43A047;font-size:15px">₹1,82,000</div>
+                <div class="metric-sub">14 bills</div>
+              </div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-icon" style="background:rgba(21,101,192,0.15)">📋</div>
+              <div>
+                <div class="metric-label">Kacha Sales</div>
+                <div class="metric-value" style="color:#1565C0;font-size:15px">₹65,500</div>
+                <div class="metric-sub">8 bills</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon" style="background:rgba(255,152,0,0.15)">🏦</div>
+            <div>
+              <div class="metric-label">GST Collected</div>
+              <div class="metric-value" style="color:#E65100">₹21,840</div>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon" style="background:rgba(245,197,24,0.15)">💎</div>
+            <div>
+              <div class="metric-label">Gold Stock</div>
+              <div class="metric-value" style="color:#B8860B">1,247.35 g</div>
+            </div>
+          </div>
+
+          <div class="inventory-card">
+            <h3>Inventory Status</h3>
+            <div class="inv-row"><span>In Stock</span><span class="chip">342</span></div>
+            <div class="inv-row"><span>Sold Today</span><span class="chip">22</span></div>
+            <div class="inv-row"><span>Reserved</span><span class="chip">5</span></div>
+            <div class="inv-row"><span>Returned</span><span class="chip">3</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active">🏠<span>Dashboard</span></div>
+        <div class="nav-item">📦<span>Inventory</span></div>
+        <div class="nav-item">🧾<span>Billing</span></div>
+        <div class="nav-item">📷<span>Scanner</span></div>
+        <div class="nav-item">👥<span>Customers</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── INVENTORY ── -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Inventory</div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>●●● WiFi 🔋</span></div>
+      <div class="app-bar">
+        Inventory
+        <div class="trailing"><div class="icon-btn">➕</div></div>
+      </div>
+      <div class="scroll-area">
+        <div class="search-bar">🔍 <span>Search by name or tag code...</span></div>
+        <div class="filter-row">
+          <button class="filter-chip active">All</button>
+          <button class="filter-chip">In Stock</button>
+          <button class="filter-chip">Sold</button>
+          <button class="filter-chip">Gold 22K</button>
+          <button class="filter-chip">Silver</button>
+        </div>
+
+        <div class="ornament-card">
+          <div class="ornament-icon">💍</div>
+          <div class="ornament-info">
+            <div class="ornament-name">Gold Ring 22K</div>
+            <div class="ornament-sub">TAG-001 · 8.5 g · Meenakari</div>
+            <div style="margin-top:4px"><span class="badge badge-green">In Stock</span></div>
+          </div>
+          <div>
+            <div class="ornament-price">₹52,700</div>
+          </div>
+        </div>
+
+        <div class="ornament-card">
+          <div class="ornament-icon">📿</div>
+          <div class="ornament-info">
+            <div class="ornament-name">Gold Necklace 22K</div>
+            <div class="ornament-sub">TAG-002 · 24.2 g · Plain</div>
+            <div style="margin-top:4px"><span class="badge badge-green">In Stock</span></div>
+          </div>
+          <div>
+            <div class="ornament-price">₹1,50,040</div>
+          </div>
+        </div>
+
+        <div class="ornament-card">
+          <div class="ornament-icon">👂</div>
+          <div class="ornament-info">
+            <div class="ornament-name">Gold Earrings 18K</div>
+            <div class="ornament-sub">TAG-003 · 5.1 g · Stone set</div>
+            <div style="margin-top:4px"><span class="badge badge-grey">Sold</span></div>
+          </div>
+          <div>
+            <div class="ornament-price">₹28,900</div>
+          </div>
+        </div>
+
+        <div class="ornament-card">
+          <div class="ornament-icon">🔗</div>
+          <div class="ornament-info">
+            <div class="ornament-name">Silver Bracelet 925</div>
+            <div class="ornament-sub">TAG-004 · 32.0 g · Oxidized</div>
+            <div style="margin-top:4px"><span class="badge badge-green">In Stock</span></div>
+          </div>
+          <div>
+            <div class="ornament-price">₹3,200</div>
+          </div>
+        </div>
+
+        <div class="ornament-card">
+          <div class="ornament-icon">💎</div>
+          <div class="ornament-info">
+            <div class="ornament-name">Diamond Ring 18K</div>
+            <div class="ornament-sub">TAG-005 · 4.8 g · CZ</div>
+            <div style="margin-top:4px"><span class="badge badge-green">In Stock</span></div>
+          </div>
+          <div>
+            <div class="ornament-price">₹44,200</div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item">🏠<span>Dashboard</span></div>
+        <div class="nav-item active">📦<span>Inventory</span></div>
+        <div class="nav-item">🧾<span>Billing</span></div>
+        <div class="nav-item">📷<span>Scanner</span></div>
+        <div class="nav-item">👥<span>Customers</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BILLING ── -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Billing</div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>●●● WiFi 🔋</span></div>
+      <div class="app-bar">Billing</div>
+      <div class="scroll-area" style="display:flex;align-items:center;justify-content:center;">
+        <div class="billing-body">
+          <div class="billing-title">Select Bill Type</div>
+          <div class="billing-sub">Pakka bills include GST and are legally required for card/UPI payments.</div>
+
+          <div class="bill-type-card green">
+            <div class="bill-icon green">🧾</div>
+            <div>
+              <div class="bill-title green">Pakka Bill</div>
+              <div class="bill-desc">With GST · Legal · Card/UPI/Cash</div>
+            </div>
+            <div class="arrow green">›</div>
+          </div>
+
+          <div style="height:16px"></div>
+
+          <div class="bill-type-card blue">
+            <div class="bill-icon blue">📋</div>
+            <div>
+              <div class="bill-title blue">Kacha Bill</div>
+              <div class="bill-desc">No GST · Cash Only · Internal</div>
+            </div>
+            <div class="arrow blue">›</div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item">🏠<span>Dashboard</span></div>
+        <div class="nav-item">📦<span>Inventory</span></div>
+        <div class="nav-item active">🧾<span>Billing</span></div>
+        <div class="nav-item">📷<span>Scanner</span></div>
+        <div class="nav-item">👥<span>Customers</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CUSTOMERS ── -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Customers</div>
+    <div class="phone" style="position:relative">
+      <div class="status-bar"><span>9:41</span><span>●●● WiFi 🔋</span></div>
+      <div class="app-bar">Customers</div>
+      <div class="scroll-area">
+        <div class="list-tile">
+          <div class="avatar">A</div>
+          <div class="tile-content">
+            <div class="tile-title">Anita Sharma</div>
+            <div class="tile-sub">+91 98765 43210</div>
+          </div>
+          <span style="color:#43A047">✅</span>
+        </div>
+        <div class="list-tile">
+          <div class="avatar">R</div>
+          <div class="tile-content">
+            <div class="tile-title">Rajesh Kumar</div>
+            <div class="tile-sub">+91 91234 56789</div>
+          </div>
+          <span style="color:#43A047">✅</span>
+        </div>
+        <div class="list-tile">
+          <div class="avatar">P</div>
+          <div class="tile-content">
+            <div class="tile-title">Priya Mehta</div>
+            <div class="tile-sub">+91 87654 32109</div>
+          </div>
+        </div>
+        <div class="list-tile">
+          <div class="avatar">S</div>
+          <div class="tile-content">
+            <div class="tile-title">Suresh Patel</div>
+            <div class="tile-sub">+91 76543 21098</div>
+          </div>
+          <span style="color:#43A047">✅</span>
+        </div>
+        <div class="list-tile">
+          <div class="avatar">M</div>
+          <div class="tile-content">
+            <div class="tile-title">Meena Joshi</div>
+            <div class="tile-sub">+91 65432 10987</div>
+          </div>
+        </div>
+        <div class="list-tile">
+          <div class="avatar">V</div>
+          <div class="tile-content">
+            <div class="tile-title">Vijay Desai</div>
+            <div class="tile-sub">+91 54321 09876</div>
+          </div>
+        </div>
+      </div>
+      <div class="fab">+</div>
+      <div class="bottom-nav">
+        <div class="nav-item">🏠<span>Dashboard</span></div>
+        <div class="nav-item">📦<span>Inventory</span></div>
+        <div class="nav-item">🧾<span>Billing</span></div>
+        <div class="nav-item">📷<span>Scanner</span></div>
+        <div class="nav-item active">👥<span>Customers</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── METAL RATES ── -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Metal Rates</div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>●●● WiFi 🔋</span></div>
+      <div class="app-bar">
+        Metal Rates
+        <div class="trailing">
+          <div class="icon-btn">🔄</div>
+          <div class="icon-btn">➕</div>
+        </div>
+      </div>
+      <div class="scroll-area">
+        <div class="padding-body">
+          <div class="stale-banner">⚠️ Rates are stale! Please update today's rates.</div>
+
+          <div style="font-size:12px;color:#999;padding:0 12px 8px">
+            Session: MORNING · 09 May 2026
+          </div>
+
+          <div class="section-title">Gold Rates (per gram)</div>
+
+          <div class="rate-card">
+            <div class="rate-avatar" style="background:rgba(255,179,0,0.2);color:#B8860B">22</div>
+            <span class="rate-label">22K Gold</span>
+            <span class="rate-value" style="color:#B8860B">₹6,200/g</span>
+          </div>
+          <div class="rate-card">
+            <div class="rate-avatar" style="background:rgba(230,120,0,0.2);color:#8B4513">24</div>
+            <span class="rate-label">24K Gold</span>
+            <span class="rate-value" style="color:#8B4513">₹6,800/g</span>
+          </div>
+          <div class="rate-card">
+            <div class="rate-avatar" style="background:rgba(255,213,0,0.2);color:#DAA520">18</div>
+            <span class="rate-label">18K Gold</span>
+            <span class="rate-value" style="color:#DAA520">₹5,100/g</span>
+          </div>
+          <div class="rate-card">
+            <div class="rate-avatar" style="background:rgba(255,224,102,0.2);color:#B8A000">14</div>
+            <span class="rate-label">14K Gold</span>
+            <span class="rate-value" style="color:#B8A000">₹3,967/g</span>
+          </div>
+
+          <div class="section-title">Silver Rates (per gram)</div>
+
+          <div class="rate-card">
+            <div class="rate-avatar" style="background:rgba(100,100,100,0.15);color:#555">Ag</div>
+            <span class="rate-label">Silver</span>
+            <span class="rate-value" style="color:#666">₹85/g</span>
+          </div>
+          <div class="rate-card">
+            <div class="rate-avatar" style="background:rgba(150,150,150,0.15);color:#777">925</div>
+            <span class="rate-label">Sterling 925</span>
+            <span class="rate-value" style="color:#777">₹79/g</span>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item">🏠<span>Dashboard</span></div>
+        <div class="nav-item">📦<span>Inventory</span></div>
+        <div class="nav-item">🧾<span>Billing</span></div>
+        <div class="nav-item active">💰<span>Rates</span></div>
+        <div class="nav-item">👥<span>Customers</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="text-align:center;margin-top:40px;color:#aaa;font-size:12px">
+  Colors: Primary Dark <strong style="color:#1A1A2E">#1A1A2E</strong> · Gold <strong style="color:#B8860B">#D4AF37</strong> · Accent Gold <strong style="color:#B8A000">#F5C518</strong>
+  &nbsp;|&nbsp; Built with Flutter · Riverpod · GoRouter
+</p>
+
+</body>
+</html>
