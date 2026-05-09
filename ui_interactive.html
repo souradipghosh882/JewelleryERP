@@ -48,18 +48,21 @@ h1{color:var(--dark);margin-bottom:4px;font-size:20px;}
 /* ─── BOTTOM NAV ─────────────────────────────────────────── */
 .bottom-nav{
   height:62px;background:#fff;border-top:1px solid #eee;
-  display:flex;align-items:center;justify-content:space-around;flex-shrink:0;
+  display:flex;align-items:center;flex-shrink:0;
+  overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
 }
+.bottom-nav::-webkit-scrollbar{display:none;}
 .nav-it{
   display:flex;flex-direction:column;align-items:center;gap:2px;
-  font-size:9px;color:#aaa;cursor:pointer;padding:4px 6px;
-  border-radius:10px;transition:color .18s;min-width:40px;
+  font-size:9px;color:#aaa;cursor:pointer;padding:4px 8px;
+  border-radius:10px;transition:color .18s;min-width:52px;flex-shrink:0;
 }
 .nav-it.on{color:var(--gold);background:rgba(212,175,55,.1);}
 .nav-it span{font-size:18px;}
 
 /* ─── SCREEN VISIBILITY ──────────────────────────────────── */
-.screen{display:none;flex-direction:column;height:100%;}
+.screen{display:none;flex-direction:column;flex:1;min-height:0;}
 .screen.active{display:flex;}
 
 /* ─── LOGIN ──────────────────────────────────────────────── */
@@ -471,9 +474,12 @@ h1{color:var(--dark);margin-bottom:4px;font-size:20px;}
 
   <!-- ══════════ DASHBOARD ══════════ -->
   <div class="screen" id="s-dashboard" style="flex-direction:column;">
-    <div class="app-bar">
-      Dashboard
-      <div class="trailing"><div class="icon-btn" onclick="refreshDash()">🔄</div></div>
+    <div class="app-bar" style="flex-direction:column;height:auto;padding:10px 14px;align-items:flex-start;gap:2px;">
+      <div style="display:flex;width:100%;align-items:center;">
+        <span style="flex:1;font-size:16px;font-weight:700;color:var(--gold);letter-spacing:.4px;">Dashboard</span>
+        <div class="icon-btn" onclick="refreshDash()">🔄</div>
+      </div>
+      <div id="dash-role-bar" style="display:flex;align-items:center;gap:6px;width:100%;margin-top:1px;"></div>
     </div>
     <div class="scroll" id="dash-scroll">
       <div class="seg-bar" id="seg-period">
@@ -524,8 +530,20 @@ h1{color:var(--dark);margin-bottom:4px;font-size:20px;}
     </div>
     <div class="scroll">
       <div class="add-form">
+        <!-- Generated Tag Preview -->
+        <div id="tag-preview-card" style="margin:10px 12px;background:var(--dark);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;">
+          <div style="flex-shrink:0;background:#fff;border-radius:8px;padding:4px;width:84px;height:84px;display:flex;align-items:center;justify-content:center;">
+            <img id="tag-qr-img" src="" alt="QR" style="width:76px;height:76px;border-radius:4px;display:block;">
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="color:rgba(255,255,255,.45);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:4px;">Auto-Generated Tag</div>
+            <div id="tag-code-display" style="color:var(--gold);font-size:19px;font-weight:700;font-family:monospace;letter-spacing:2px;word-break:break-all;"></div>
+            <div style="color:rgba(255,255,255,.35);font-size:10px;margin-top:5px;">📷 Scan to identify this item</div>
+            <div id="tag-date-display" style="color:rgba(255,255,255,.25);font-size:10px;margin-top:2px;"></div>
+          </div>
+        </div>
         <!-- Basic Info -->
-        <div class="det-card" style="margin:10px 12px;">
+        <div class="det-card" style="margin:0 12px 10px;">
           <h3>Basic Info</h3>
           <div class="f-row">
             <label>Ornament Name *</label>
@@ -545,7 +563,7 @@ h1{color:var(--dark);margin-bottom:4px;font-size:20px;}
             </div>
             <div class="f-row">
               <label>Category *</label>
-              <select id="ao-cat">
+              <select id="ao-cat" onchange="refreshTagPreview()">
                 <option value="RNG">Ring</option>
                 <option value="NCK">Necklace</option>
                 <option value="EAR">Earring</option>
@@ -682,7 +700,7 @@ h1{color:var(--dark);margin-bottom:4px;font-size:20px;}
         <h4>Items <span style="font-weight:400;font-size:11px;color:#aaa">(scan or tap from inventory)</span></h4>
         <div id="pakka-cart"></div>
         <div style="display:flex;gap:8px;margin-top:8px;">
-          <button onclick="addCartItemPakka()" style="flex:1;height:36px;border:1.5px dashed #43A047;background:transparent;border-radius:8px;color:#43A047;font-size:12px;cursor:pointer;">＋ Add Item</button>
+          <button onclick="openItemPicker('pakka')" style="flex:1;height:36px;border:1.5px dashed #43A047;background:transparent;border-radius:8px;color:#43A047;font-size:12px;cursor:pointer;">＋ Add Item</button>
           <button onclick="goTo('s-scanner')" style="height:36px;padding:0 12px;border:1.5px solid #ddd;background:#fff;border-radius:8px;color:#555;font-size:12px;cursor:pointer;">📷 Scan</button>
         </div>
       </div>
@@ -726,7 +744,7 @@ h1{color:var(--dark);margin-bottom:4px;font-size:20px;}
         <h4>Items</h4>
         <div id="kacha-cart"></div>
         <div style="display:flex;gap:8px;margin-top:8px;">
-          <button onclick="addCartItemKacha()" style="flex:1;height:36px;border:1.5px dashed #1565C0;background:transparent;border-radius:8px;color:#1565C0;font-size:12px;cursor:pointer;">＋ Add Item</button>
+          <button onclick="openItemPicker('kacha')" style="flex:1;height:36px;border:1.5px dashed #1565C0;background:transparent;border-radius:8px;color:#1565C0;font-size:12px;cursor:pointer;">＋ Add Item</button>
           <button onclick="goTo('s-scanner')" style="height:36px;padding:0 12px;border:1.5px solid #ddd;background:#fff;border-radius:8px;color:#555;font-size:12px;cursor:pointer;">📷 Scan</button>
         </div>
       </div>
@@ -959,6 +977,16 @@ h1{color:var(--dark);margin-bottom:4px;font-size:20px;}
     <div class="scroll" id="vendor-detail-body"></div>
   </div>
 
+  <!-- ══════════ TODAY'S SALE ══════════ -->
+  <div class="screen" id="s-today-sale" style="flex-direction:column;">
+    <div class="app-bar">
+      <span class="back" onclick="goBack()">‹</span>
+      Today's Sales
+      <div class="trailing"><div class="icon-btn" onclick="renderTodaySale()">🔄</div></div>
+    </div>
+    <div class="scroll" id="today-sale-body"></div>
+  </div>
+
   <!-- BOTTOM NAV (hidden on login/success) -->
   <div class="bottom-nav" id="bottom-nav" style="display:none;">
     <div class="nav-it" data-route="s-dashboard" onclick="navTo('s-dashboard',this)"><span>🏠</span>Dashboard</div>
@@ -972,6 +1000,7 @@ h1{color:var(--dark);margin-bottom:4px;font-size:20px;}
     <div class="nav-it" data-route="s-rokar" onclick="navTo('s-rokar',this)" id="nav-rokar"><span>🏦</span>Rokar</div>
     <div class="nav-it" data-route="s-staff" onclick="navTo('s-staff',this)" id="nav-staff"><span>🪪</span>Staff</div>
     <div class="nav-it" data-route="s-vendors" onclick="navTo('s-vendors',this)" id="nav-vendors"><span>🏪</span>Vendors</div>
+    <div class="nav-it" data-route="s-today-sale" onclick="navTo('s-today-sale',this)" id="nav-today-sale"><span>📈</span>Today's Sale</div>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -983,6 +1012,21 @@ h1{color:var(--dark);margin-bottom:4px;font-size:20px;}
       <div class="modal-title">Select Customer</div>
       <div id="cust-picker-list" style="max-height:320px;overflow-y:auto;"></div>
       <button class="modal-close" onclick="closeModal('cust-picker-modal')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ══════════ ITEM PICKER MODAL ══════════ -->
+  <div class="modal-backdrop" id="item-picker-modal">
+    <div class="modal-sheet" style="max-height:90%;">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Add Item to Bill</div>
+      <div style="padding:0 12px 8px;">
+        <div class="search-bar" style="margin:0;border:1.5px solid #ddd;">🔍
+          <input id="item-picker-search" placeholder="Search by name, tag, category…" style="border:none;outline:none;flex:1;font-size:13px;background:transparent;" oninput="renderItemPicker()">
+        </div>
+      </div>
+      <div id="item-picker-list" style="max-height:380px;overflow-y:auto;padding:0 12px;"></div>
+      <button class="modal-close" onclick="closeModal('item-picker-modal')">Cancel</button>
     </div>
   </div>
 
@@ -1334,17 +1378,15 @@ function goTo(id){
   prevScreen = currentScreen;
   currentScreen = id;
 
-  const noNav = ['s-login','s-success','s-scanner','s-ornament-detail','s-add-ornament',
-    's-customer-detail','s-pakka','s-kacha','s-staff-detail','s-vendor-detail','s-add-customer'];
   const nav = document.getElementById('bottom-nav');
-  if(id==='s-login') nav.style.display='none';
+  if(id==='s-login'||id==='s-success') nav.style.display='none';
   else nav.style.display='flex';
 
   // Sync active nav dot
   document.querySelectorAll('.nav-it').forEach(n=>n.classList.remove('on'));
   const map = {'s-dashboard':'s-dashboard','s-inventory':'s-inventory','s-billing':'s-billing',
     's-scanner':'s-scanner','s-customers':'s-customers','s-schemes':'s-schemes',
-    's-analytics':'s-analytics','s-rates':'s-rates','s-rokar':'s-rokar',
+    's-analytics':'s-analytics','s-rates':'s-rates','s-rokar':'s-rokar','s-today-sale':'s-today-sale',
     's-staff':'s-staff','s-vendors':'s-vendors',
     's-ornament-detail':'s-inventory','s-add-ornament':'s-inventory',
     's-customer-detail':'s-customers','s-add-customer':'s-customers',
@@ -1363,7 +1405,8 @@ function goTo(id){
   if(id==='s-analytics') renderAnalytics();
   if(id==='s-staff') renderStaff();
   if(id==='s-vendors') renderVendors();
-  if(id==='s-add-ornament') calcLivePrice();
+  if(id==='s-today-sale') renderTodaySale();
+  if(id==='s-add-ornament') initAddOrnament();
 }
 
 function goBack(){goTo(prevScreen||'s-dashboard');}
@@ -1437,6 +1480,23 @@ function fmt(n){return Number(n).toLocaleString('en-IN');}
 function renderDash(){
   const d=DASH_DATA[dashPeriod];
   const isOwner=currentRole==='owner'||currentRole==='manager';
+  // Role bar
+  const ROLE_META={
+    owner:   {label:'Owner',color:'#D4AF37',bg:'rgba(212,175,55,.18)',icon:'👑'},
+    manager: {label:'Manager',color:'#1E88E5',bg:'rgba(30,136,229,.15)',icon:'🏢'},
+    salesman:{label:'Salesman',color:'#43A047',bg:'rgba(67,160,71,.15)',icon:'🛍️'},
+    tagger:  {label:'Tagger',color:'#8E24AA',bg:'rgba(142,36,170,.15)',icon:'🏷️'},
+    accountant:{label:'Accountant',color:'#FB8C00',bg:'rgba(251,140,0,.15)',icon:'📊'},
+  };
+  const rm = ROLE_META[currentRole]||{label:currentRole,color:'#888',bg:'rgba(0,0,0,.08)',icon:'👤'};
+  const staffName = STAFF.find(s=>s.role===currentRole)?.name || 'Staff';
+  const roleBar = document.getElementById('dash-role-bar');
+  if(roleBar) roleBar.innerHTML=`
+    <span style="font-size:14px">${rm.icon}</span>
+    <span style="font-size:12px;color:rgba(255,255,255,.55);">Logged in as</span>
+    <span style="background:${rm.bg};color:${rm.color};font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.5px;">${rm.label}</span>
+    <span style="font-size:11px;color:rgba(255,255,255,.35);margin-left:2px;">${staffName}</span>
+  `;
   const activity=[
     {dot:'#43A047',desc:'Pakka Bill BILL-2026-025 – Anita Sharma · ₹52,700',time:'10 min ago'},
     {dot:'#1565C0',desc:'Kacha Bill BILL-2026-024 – Walk-in · ₹19,200',time:'32 min ago'},
@@ -1448,6 +1508,7 @@ function renderDash(){
     <!-- Quick Actions -->
     <div style="padding:12px 12px 0;font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;">Quick Actions</div>
     <div class="quick-acts">
+      <button class="qa" onclick="goTo('s-today-sale')"><span class="qi">📈</span><span class="ql">Today's Sale</span></button>
       <button class="qa" onclick="goTo('s-billing')"><span class="qi">🧾</span><span class="ql">New Bill</span></button>
       <button class="qa" onclick="goTo('s-scanner')"><span class="qi">📷</span><span class="ql">Scan Tag</span></button>
       <button class="qa" onclick="goTo('s-add-ornament')"><span class="qi">💍</span><span class="ql">Add Item</span></button>
@@ -1653,15 +1714,79 @@ function calcLivePrice(){
   set('prev-extra',hallmark+other);set('prev-gst',gst);set('prev-total',total);
 }
 
+let currentTagCode = '';
+
+function genTagCode(catVal){
+  const CAT_NAMES={RNG:'Ring',NCK:'Necklace',EAR:'Earring',BNG:'Bangle',BRC:'Bracelet',
+    CHN:'Chain',PND:'Pendant',ANK:'Anklet',MGS:'Mangalsutra',NSR:'Nose Ring',OTH:'Other'};
+  const catName = CAT_NAMES[catVal]||'Other';
+  const existing = ORNAMENTS.filter(o=>o.category===catName).length + 1;
+  const seq = String(existing).padStart(3,'0');
+  return `${catVal}-${seq}`;
+}
+
+function refreshTagPreview(){
+  const cat = document.getElementById('ao-cat')?.value||'RNG';
+  currentTagCode = genTagCode(cat);
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=76x76&data=${encodeURIComponent(currentTagCode)}&bgcolor=FAF9F6&color=1A1A2E&margin=3`;
+  const qrEl = document.getElementById('tag-qr-img');
+  if(qrEl) qrEl.src = qrUrl;
+  const codeEl = document.getElementById('tag-code-display');
+  if(codeEl) codeEl.textContent = currentTagCode;
+  const dateEl = document.getElementById('tag-date-display');
+  if(dateEl) dateEl.textContent = 'Date: ' + new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+function initAddOrnament(){
+  ['ao-name','ao-gross','ao-net','ao-stone-wt','ao-stone-rate','ao-making','ao-other','ao-desc'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  const hall=document.getElementById('ao-hallmark'); if(hall) hall.value='45';
+  const mt=document.getElementById('ao-making-type'); if(mt) mt.value='per_gram';
+  const ml=document.getElementById('making-lbl'); if(ml) ml.textContent='Making Rate (₹/g) *';
+  refreshTagPreview();
+  calcLivePrice();
+}
+
 function saveOrnament(){
   const name=document.getElementById('ao-name')?.value.trim();
-  const gross=document.getElementById('ao-gross')?.value;
-  const net=document.getElementById('ao-net')?.value;
+  const gross=parseFloat(document.getElementById('ao-gross')?.value)||0;
+  const net=parseFloat(document.getElementById('ao-net')?.value)||0;
   if(!name){showToast('Enter item name','err');return;}
   if(!gross||!net){showToast('Enter weight values','err');return;}
-  const tag='TAG-'+String(Math.floor(Math.random()*9000+1000));
-  showToast(`✅ Ornament saved! Tag: ${tag}`,'ok');
-  setTimeout(()=>goTo('s-inventory'),900);
+
+  const METAL_ICONS={gold_22k:'💛',gold_24k:'🥇',gold_18k:'🌟',gold_14k:'✨',silver:'🥈',silver_925:'🔗'};
+  const CAT_NAMES={RNG:'Ring',NCK:'Necklace',EAR:'Earring',BNG:'Bangle',BRC:'Bracelet',
+    CHN:'Chain',PND:'Pendant',ANK:'Anklet',MGS:'Mangalsutra',NSR:'Nose Ring',OTH:'Other'};
+  const metal=document.getElementById('ao-metal')?.value||'gold_22k';
+  const catVal=document.getElementById('ao-cat')?.value||'OTH';
+  const making=parseFloat(document.getElementById('ao-making')?.value)||0;
+  const makingType=document.getElementById('ao-making-type')?.value||'per_gram';
+  const hallmark=parseFloat(document.getElementById('ao-hallmark')?.value)||45;
+  const other=parseFloat(document.getElementById('ao-other')?.value)||0;
+  const stoneWt=parseFloat(document.getElementById('ao-stone-wt')?.value)||0;
+  const stoneRate=parseFloat(document.getElementById('ao-stone-rate')?.value)||0;
+
+  const rate=RATES[metal]||RATES.gold_22k;
+  const goldVal=net*rate;
+  const makingCharge=makingType==='percent'?goldVal*(making/100):net*making;
+  const stoneVal=stoneWt*stoneRate;
+  const price=Math.round(goldVal+makingCharge+stoneVal+hallmark+other);
+
+  ORNAMENTS.push({
+    id:String(Date.now()),
+    tag_code:currentTagCode,
+    name,metal_type:metal,
+    category:CAT_NAMES[catVal]||'Other',
+    status:'in_stock',
+    gross_weight:gross,net_weight:net,
+    stone_weight:stoneWt,making_charge_value:making,
+    making_charge_type:makingType,hallmark_charge:hallmark,
+    other_charges:other,stone_rate:stoneRate,
+    icon:METAL_ICONS[metal]||'💍',price,
+  });
+  showToast(`✅ ${currentTagCode} saved & tag generated!`,'ok');
+  setTimeout(()=>{renderInventory();goTo('s-inventory');},900);
 }
 
 /* ── PAKKA BILL ─────────────────────────────────── */
@@ -1672,21 +1797,58 @@ function setPay(type,mode,el){
   el.classList.add('on');
 }
 
-function addCartItemPakka(){
-  const avail = ORNAMENTS.filter(o=>o.status==='in_stock'&&!pakkaCart.find(c=>c.id===o.id));
-  if(!avail.length){showToast('No more in-stock items','err');return;}
-  const item = avail[Math.floor(Math.random()*avail.length)];
-  pakkaCart.push(item);
-  updatePakkaCart();
-  showToast(`${item.icon} ${item.name} added`,'ok');
+let itemPickerBillType = 'pakka';
+
+function openItemPicker(type){
+  itemPickerBillType = type;
+  const searchEl = document.getElementById('item-picker-search');
+  if(searchEl) searchEl.value = '';
+  renderItemPicker();
+  openModal('item-picker-modal');
 }
 
-function addCartItemKacha(){
-  const avail = ORNAMENTS.filter(o=>o.status==='in_stock'&&!kachaCart.find(c=>c.id===o.id));
-  if(!avail.length){showToast('No more in-stock items','err');return;}
-  const item = avail[Math.floor(Math.random()*avail.length)];
-  kachaCart.push(item);
-  updateKachaCart();
+function renderItemPicker(){
+  const q = (document.getElementById('item-picker-search')?.value||'').toLowerCase();
+  const cart = itemPickerBillType==='pakka' ? pakkaCart : kachaCart;
+  const avail = ORNAMENTS.filter(o=>{
+    if(o.status!=='in_stock') return false;
+    if(cart.find(c=>c.id===o.id)) return false;
+    if(!q) return true;
+    return o.name.toLowerCase().includes(q)||
+           o.tag_code.toLowerCase().includes(q)||
+           o.category.toLowerCase().includes(q)||
+           (o.metal_type||'').toLowerCase().includes(q);
+  });
+  const list = document.getElementById('item-picker-list');
+  if(!list) return;
+  if(!avail.length){
+    list.innerHTML = '<div style="text-align:center;padding:32px 12px;color:#bbb;font-size:13px;">🔍 No matching in-stock items</div>';
+    return;
+  }
+  list.innerHTML = avail.map(o=>{
+    const metalLabel={gold_22k:'22K Gold',gold_24k:'24K Gold',gold_18k:'18K Gold',gold_14k:'14K Gold',silver:'Silver',silver_925:'Sterling 925'}[o.metal_type]||o.metal_type;
+    return `<div onclick="addItemFromPicker('${o.id}')" style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid #f0f0f0;cursor:pointer;border-radius:8px;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'">
+      <div style="width:38px;height:38px;background:rgba(212,175,55,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${o.icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.name}</div>
+        <div style="font-size:11px;color:#999;margin-top:2px;">${o.tag_code} · ${metalLabel} · ${o.gross_weight}g</div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--gold);flex-shrink:0;">₹${o.price.toLocaleString('en-IN')}</div>
+    </div>`;
+  }).join('');
+}
+
+function addItemFromPicker(id){
+  const item = ORNAMENTS.find(o=>o.id===id);
+  if(!item) return;
+  if(itemPickerBillType==='pakka'){
+    if(!pakkaCart.find(c=>c.id===id)) pakkaCart.push(item);
+    updatePakkaCart();
+  } else {
+    if(!kachaCart.find(c=>c.id===id)) kachaCart.push(item);
+    updateKachaCart();
+  }
+  closeModal('item-picker-modal');
   showToast(`${item.icon} ${item.name} added`,'ok');
 }
 
@@ -2239,6 +2401,73 @@ function saveStaff(){
 let currentVendor = null;
 
 function vendorIcon(t){return {gold:'🥇',silver:'🥈',diamond:'💎',stones:'💠',mixed:'📦'}[t]||'🏪';}
+
+function renderTodaySale(){
+  const d = DASH_DATA.today;
+  const bills = [
+    {id:'BILL-2026-025',type:'pakka',customer:'Anita Sharma',items:['Gold Ring 22K','Silver Anklet'],total:52700,pay:'UPI',time:'10:30 AM'},
+    {id:'BILL-2026-024',type:'kacha',customer:'Walk-in',items:['Gold Pendant 22K'],total:19200,pay:'Cash',time:'11:15 AM'},
+    {id:'BILL-2026-023',type:'pakka',customer:'Rajesh Kumar',items:['Gold Bangle Set 22K'],total:264000,pay:'Bank',time:'12:40 PM'},
+    {id:'BILL-2026-022',type:'kacha',customer:'Priya Mehta',items:['Gold Earrings 18K'],total:28900,pay:'Cash',time:'2:05 PM'},
+    {id:'BILL-2026-021',type:'pakka',customer:'Suresh Patel',items:['Diamond Ring 18K','Gold Necklace 22K'],total:194240,pay:'Card',time:'3:20 PM'},
+    {id:'BILL-2026-020',type:'kacha',customer:'Vijay Desai',items:['Silver Bracelet 925'],total:3200,pay:'Cash',time:'4:45 PM'},
+  ];
+  const totalRevenue = bills.reduce((s,b)=>s+b.total,0);
+  const pakkaTotal = bills.filter(b=>b.type==='pakka').reduce((s,b)=>s+b.total,0);
+  const kachaTotal = bills.filter(b=>b.type==='kacha').reduce((s,b)=>s+b.total,0);
+  const gst = Math.round(pakkaTotal*0.03);
+  document.getElementById('today-sale-body').innerHTML=`
+    <div style="padding:10px 12px 4px;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;">
+      ${new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+    </div>
+    <!-- Summary cards -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 12px 8px;">
+      <div style="background:#fff;border-radius:10px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.07);">
+        <div style="font-size:10px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.4px;">Total Revenue</div>
+        <div style="font-size:17px;font-weight:700;color:var(--gold);margin-top:4px;">₹${fmt(totalRevenue)}</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px;">${bills.length} bills today</div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.07);">
+        <div style="font-size:10px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.4px;">GST Collected</div>
+        <div style="font-size:17px;font-weight:700;color:#E65100;margin-top:4px;">₹${fmt(gst)}</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px;">From pakka bills</div>
+      </div>
+      <div style="background:#e8f5e9;border-radius:10px;padding:12px;">
+        <div style="font-size:10px;color:#2e7d32;font-weight:600;text-transform:uppercase;letter-spacing:.4px;">🧾 Pakka</div>
+        <div style="font-size:15px;font-weight:700;color:#2e7d32;margin-top:4px;">₹${fmt(pakkaTotal)}</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px;">${bills.filter(b=>b.type==='pakka').length} bills · with GST</div>
+      </div>
+      <div style="background:#e3f2fd;border-radius:10px;padding:12px;">
+        <div style="font-size:10px;color:#1565C0;font-weight:600;text-transform:uppercase;letter-spacing:.4px;">📋 Kacha</div>
+        <div style="font-size:15px;font-weight:700;color:#1565C0;margin-top:4px;">₹${fmt(kachaTotal)}</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px;">${bills.filter(b=>b.type==='kacha').length} bills · cash only</div>
+      </div>
+    </div>
+    <!-- Bill list -->
+    <div style="padding:2px 12px 4px;font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;">All Bills</div>
+    <div style="margin:0 12px 12px;background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden;">
+      ${bills.map((b,i)=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:11px 12px;${i<bills.length-1?'border-bottom:1px solid #f5f5f5':''}">
+          <div style="width:36px;height:36px;border-radius:8px;background:${b.type==='pakka'?'rgba(67,160,71,.12)':'rgba(21,101,192,.1)'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+            ${b.type==='pakka'?'🧾':'📋'}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:700;color:#222;">${b.id}</div>
+            <div style="font-size:11px;color:#999;margin-top:1px;">${b.customer} · ${b.items.join(', ')}</div>
+            <div style="font-size:10px;color:#bbb;margin-top:1px;">${b.time} · ${b.pay}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:13px;font-weight:700;color:var(--gold);">₹${fmt(b.total)}</div>
+            <div style="font-size:10px;padding:1px 6px;border-radius:8px;margin-top:2px;font-weight:600;
+              background:${b.type==='pakka'?'rgba(67,160,71,.12)':'rgba(21,101,192,.1)'};
+              color:${b.type==='pakka'?'#43A047':'#1565C0'};">${b.type.toUpperCase()}</div>
+          </div>
+        </div>`).join('')}
+    </div>
+    <button class="btn-gold" style="margin:0 12px 20px;width:calc(100% - 24px);height:44px;" onclick="goTo('s-billing')">
+      ＋ Create New Bill
+    </button>`;
+}
 
 function renderVendors(){
   const totalDue=VENDORS.reduce((s,v)=>s+v.balance,0);
