@@ -1,0 +1,2452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jewellery ERP – Interactive Prototype</title>
+<style>
+/* ─── RESET & BASE ─────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#D4AF37; --gold-lt:#F5C518; --dark:#1A1A2E;
+  --surface:#FAF9F6; --err:#E53935; --ok:#43A047;
+  --r:12px;
+}
+body{background:#d6d6d6;font-family:'Segoe UI',Roboto,sans-serif;
+  display:flex;flex-direction:column;align-items:center;padding:24px;min-height:100vh;}
+
+h1{color:var(--dark);margin-bottom:4px;font-size:20px;}
+.meta{color:#777;font-size:12px;margin-bottom:28px;}
+
+/* ─── PHONE SHELL ───────────────────────────────────────── */
+.phone{
+  width:360px;height:720px;
+  background:#fff;border-radius:40px;
+  box-shadow:0 12px 48px rgba(0,0,0,0.28),inset 0 0 0 2px #bbb;
+  overflow:hidden;display:flex;flex-direction:column;position:relative;
+}
+.status-bar{
+  height:28px;background:var(--dark);flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;font-size:10px;color:rgba(255,255,255,.65);
+}
+.app-bar{
+  height:52px;background:var(--dark);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;position:relative;
+  color:var(--gold);font-weight:700;font-size:16px;letter-spacing:.4px;
+}
+.app-bar .back{position:absolute;left:14px;font-size:20px;cursor:pointer;color:var(--gold);}
+.app-bar .trailing{position:absolute;right:10px;display:flex;gap:2px;}
+.icon-btn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+  font-size:17px;cursor:pointer;color:var(--gold);border-radius:8px;}
+.icon-btn:hover{background:rgba(255,255,255,.08);}
+
+.scroll{flex:1;overflow-y:auto;background:var(--surface);}
+.scroll::-webkit-scrollbar{width:3px;}
+.scroll::-webkit-scrollbar-thumb{background:#ccc;border-radius:2px;}
+
+/* ─── BOTTOM NAV ─────────────────────────────────────────── */
+.bottom-nav{
+  height:62px;background:#fff;border-top:1px solid #eee;
+  display:flex;align-items:center;justify-content:space-around;flex-shrink:0;
+}
+.nav-it{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-size:9px;color:#aaa;cursor:pointer;padding:4px 6px;
+  border-radius:10px;transition:color .18s;min-width:40px;
+}
+.nav-it.on{color:var(--gold);background:rgba(212,175,55,.1);}
+.nav-it span{font-size:18px;}
+
+/* ─── SCREEN VISIBILITY ──────────────────────────────────── */
+.screen{display:none;flex-direction:column;height:100%;}
+.screen.active{display:flex;}
+
+/* ─── LOGIN ──────────────────────────────────────────────── */
+#s-login{background:var(--dark);align-items:center;justify-content:center;padding:28px;}
+.logo{width:80px;height:80px;background:var(--gold);border-radius:20px;
+  display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:18px;}
+.login-title{color:var(--gold);font-size:24px;font-weight:700;letter-spacing:1px;margin-bottom:4px;}
+.login-sub{color:rgba(255,255,255,.45);font-size:13px;margin-bottom:28px;}
+.form-card{background:#fff;border-radius:16px;padding:22px;width:100%;}
+.f-label{font-size:11px;color:#666;margin-bottom:4px;display:block;}
+.f-wrap{border:1.5px solid #ddd;border-radius:10px;height:44px;display:flex;
+  align-items:center;padding:0 12px;gap:8px;background:#fafafa;font-size:13px;color:#444;margin-bottom:12px;}
+.f-wrap input{border:none;outline:none;background:transparent;flex:1;font-size:13px;color:#333;}
+.f-prefix{color:#999;font-size:12px;}
+.btn-gold{width:100%;height:46px;background:var(--gold);color:var(--dark);
+  border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;
+  transition:opacity .18s;}
+.btn-gold:hover{opacity:.88;}
+.err-msg{color:var(--err);font-size:12px;margin-top:8px;text-align:center;min-height:16px;}
+.role-hint{margin-top:12px;text-align:center;font-size:11px;color:rgba(255,255,255,.35);}
+
+/* ─── DASHBOARD ──────────────────────────────────────────── */
+.seg-bar{display:flex;margin:12px;border:1.5px solid var(--gold);border-radius:10px;overflow:hidden;}
+.seg-btn{flex:1;height:34px;background:transparent;border:none;font-size:11px;
+  cursor:pointer;color:var(--gold);transition:background .18s;}
+.seg-btn.on{background:var(--gold);color:var(--dark);font-weight:700;}
+.metric-card{background:#fff;border-radius:var(--r);padding:14px 16px;
+  margin:0 12px 10px;box-shadow:0 2px 8px rgba(0,0,0,.07);
+  display:flex;align-items:center;gap:14px;cursor:default;}
+.m-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:22px;flex-shrink:0;}
+.m-lbl{font-size:11px;color:#888;margin-bottom:2px;}
+.m-val{font-size:18px;font-weight:700;color:var(--dark);}
+.m-sub{font-size:11px;color:#bbb;}
+.two-col{display:flex;gap:10px;margin:0 12px 10px;}
+.two-col .metric-card{flex:1;margin:0;flex-direction:column;align-items:flex-start;gap:6px;}
+.inv-card{background:#fff;border-radius:var(--r);padding:14px 16px;
+  margin:0 12px 10px;box-shadow:0 2px 8px rgba(0,0,0,.07);}
+.inv-card h3{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:10px;}
+.inv-row{display:flex;justify-content:space-between;align-items:center;
+  padding:5px 0;font-size:13px;color:#444;border-bottom:1px solid #f5f5f5;}
+.inv-row:last-child{border-bottom:none;}
+.chip{background:rgba(212,175,55,.13);color:var(--dark);font-size:12px;
+  padding:3px 10px;border-radius:20px;font-weight:600;}
+
+/* ─── INVENTORY ──────────────────────────────────────────── */
+.search-bar{margin:10px 12px;border:1.5px solid #ddd;border-radius:10px;height:40px;
+  display:flex;align-items:center;padding:0 12px;gap:8px;background:#fff;
+  font-size:13px;color:#999;}
+.filter-row{display:flex;gap:8px;padding:0 12px 10px;overflow-x:auto;}
+.fc{height:30px;padding:0 14px;border-radius:20px;border:1.5px solid #ddd;
+  background:#fff;font-size:12px;cursor:pointer;white-space:nowrap;color:#555;
+  transition:all .18s;}
+.fc.on{background:var(--gold);border-color:var(--gold);color:var(--dark);font-weight:700;}
+.orn-card{background:#fff;border-radius:var(--r);padding:12px 14px;
+  margin:0 12px 10px;box-shadow:0 2px 8px rgba(0,0,0,.07);
+  display:flex;align-items:center;gap:12px;cursor:pointer;transition:transform .15s;}
+.orn-card:hover{transform:translateY(-1px);}
+.orn-icon{width:46px;height:46px;border-radius:10px;background:rgba(212,175,55,.13);
+  display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.orn-info{flex:1;}
+.orn-name{font-size:14px;font-weight:600;color:var(--dark);}
+.orn-sub{font-size:11px;color:#888;margin-top:2px;}
+.orn-price{font-size:14px;font-weight:700;color:var(--gold);}
+.badge{font-size:10px;padding:2px 8px;border-radius:12px;font-weight:600;}
+.badge-g{background:#e8f5e9;color:#43A047;}
+.badge-grey{background:#f5f5f5;color:#888;}
+
+/* ─── ORNAMENT DETAIL ────────────────────────────────────── */
+.det-card{background:#fff;border-radius:var(--r);padding:14px 16px;
+  margin:0 12px 10px;box-shadow:0 2px 8px rgba(0,0,0,.07);}
+.det-card h3{font-size:13px;font-weight:700;color:#888;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;}
+.det-row{display:flex;justify-content:space-between;padding:5px 0;
+  font-size:13px;border-bottom:1px solid #f5f5f5;}
+.det-row:last-child{border-bottom:none;}
+.det-row span:first-child{color:#666;}
+.det-row span:last-child{font-weight:600;color:var(--dark);}
+.tag-box{background:#fff;border-radius:var(--r);padding:18px;margin:10px 12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.07);text-align:center;}
+.tag-code{font-size:22px;font-weight:700;font-family:monospace;color:var(--gold);letter-spacing:2px;}
+.qr-box{width:120px;height:120px;background:#f5f5f5;border:2px solid #ddd;
+  border-radius:10px;margin:12px auto;display:flex;align-items:center;justify-content:center;
+  font-size:60px;}
+.price-total{display:flex;justify-content:space-between;padding:8px 0;
+  font-size:15px;font-weight:700;color:var(--dark);border-top:2px solid var(--gold);margin-top:4px;}
+
+/* ─── BILLING ────────────────────────────────────────────── */
+.billing-center{display:flex;flex-direction:column;align-items:center;
+  justify-content:center;height:100%;padding:24px;}
+.b-title{font-size:20px;font-weight:700;color:var(--dark);text-align:center;margin-bottom:6px;}
+.b-sub{font-size:12px;color:#888;text-align:center;margin-bottom:28px;}
+.bill-card{width:100%;border-radius:16px;padding:18px;display:flex;
+  align-items:center;gap:14px;cursor:pointer;margin-bottom:16px;
+  transition:transform .15s;}
+.bill-card:hover{transform:scale(1.01);}
+.bill-card.green{border:2px solid #43A047;background:rgba(67,160,71,.05);}
+.bill-card.blue{border:2px solid #1565C0;background:rgba(21,101,192,.05);}
+.b-icon{width:54px;height:54px;border-radius:12px;display:flex;align-items:center;
+  justify-content:center;font-size:26px;flex-shrink:0;}
+.b-icon.green{background:rgba(67,160,71,.15);}
+.b-icon.blue{background:rgba(21,101,192,.15);}
+.b-name{font-size:17px;font-weight:700;}
+.b-name.green{color:#43A047;}
+.b-name.blue{color:#1565C0;}
+.b-desc{font-size:12px;color:#888;margin-top:2px;}
+.b-arr{font-size:14px;margin-left:auto;}
+.b-arr.green{color:#43A047;}.b-arr.blue{color:#1565C0;}
+
+/* ─── PAKKA BILL FORM ────────────────────────────────────── */
+.bill-section{padding:14px 12px;}
+.bill-section h4{font-size:13px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.customer-tile{background:#fff;border-radius:10px;padding:12px 14px;
+  display:flex;align-items:center;gap:10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.07);}
+.customer-tile .avatar{width:36px;height:36px;border-radius:50%;background:var(--gold);
+  color:var(--dark);display:flex;align-items:center;justify-content:center;font-weight:700;}
+.customer-tile .info{flex:1;}
+.cart-empty{text-align:center;padding:32px;color:#bbb;}
+.cart-item{background:#fff;border-radius:10px;padding:10px 14px;
+  margin-bottom:8px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.cart-item .rm{color:var(--err);cursor:pointer;font-size:20px;}
+.pay-sel{display:flex;gap:8px;flex-wrap:wrap;}
+.pay-opt{padding:6px 14px;border-radius:8px;border:1.5px solid #ddd;
+  font-size:12px;cursor:pointer;background:#fff;color:#555;transition:all .18s;}
+.pay-opt.on{background:var(--gold);border-color:var(--gold);color:var(--dark);font-weight:700;}
+.bill-summary{background:#f1fdf3;border-radius:10px;padding:14px;margin:0 12px 10px;}
+.sum-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:#444;}
+.sum-total{display:flex;justify-content:space-between;font-size:16px;font-weight:700;
+  color:var(--dark);border-top:1.5px solid #ccc;padding-top:8px;margin-top:6px;}
+.btn-green{width:calc(100% - 24px);margin:0 12px 12px;height:46px;background:#43A047;
+  color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;}
+.btn-green:hover{opacity:.9;}
+
+/* ─── SUCCESS ────────────────────────────────────────────── */
+#s-success{align-items:center;justify-content:center;padding:32px;}
+.success-icon{font-size:80px;margin-bottom:20px;}
+.suc-title{font-size:26px;font-weight:700;color:var(--dark);margin-bottom:8px;}
+.suc-bill{font-size:16px;color:var(--gold);font-family:monospace;margin-bottom:6px;}
+.suc-amount{font-size:22px;font-weight:700;color:var(--dark);margin-bottom:36px;}
+.btn-row{display:flex;gap:12px;width:100%;}
+.btn-outline{flex:1;height:44px;border:2px solid var(--gold);background:transparent;
+  color:var(--dark);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;}
+.btn-filled{flex:1;height:44px;background:var(--gold);color:var(--dark);
+  border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;}
+.link-btn{margin-top:16px;background:transparent;border:none;color:#888;
+  font-size:13px;cursor:pointer;text-decoration:underline;}
+
+/* ─── CUSTOMERS ──────────────────────────────────────────── */
+.list-tile{display:flex;align-items:center;gap:12px;padding:12px 14px;
+  background:#fff;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .15s;}
+.list-tile:hover{background:#fafafa;}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--gold);
+  color:var(--dark);display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:700;flex-shrink:0;}
+.t-title{font-size:14px;font-weight:600;color:var(--dark);}
+.t-sub{font-size:12px;color:#888;margin-top:1px;}
+.fab{position:absolute;bottom:70px;right:14px;width:48px;height:48px;
+  border-radius:50%;background:var(--gold);color:var(--dark);
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+  box-shadow:0 4px 12px rgba(0,0,0,.22);cursor:pointer;z-index:10;border:none;}
+
+/* ─── RATES ──────────────────────────────────────────────── */
+.stale-banner{margin:10px 12px;padding:10px 12px;border-radius:10px;
+  background:#fff3e0;border:1px solid #FF9800;display:flex;align-items:center;
+  gap:8px;font-size:12px;color:#E65100;}
+.sec-title{font-size:14px;font-weight:700;color:var(--dark);margin:10px 12px 6px;}
+.rate-card{background:#fff;border-radius:var(--r);padding:12px 14px;
+  margin:0 12px 8px;box-shadow:0 2px 6px rgba(0,0,0,.06);
+  display:flex;align-items:center;gap:12px;}
+.rate-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.rate-lbl{font-size:14px;color:#333;flex:1;}
+.rate-val{font-size:17px;font-weight:700;}
+
+/* ─── ANALYTICS ──────────────────────────────────────────── */
+.pie-wrap{display:flex;justify-content:center;margin:12px 0;}
+.pie-legend{display:flex;gap:16px;justify-content:center;margin-bottom:12px;}
+.leg-dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:4px;}
+.stat-card{background:#fff;border-radius:var(--r);padding:14px 16px;
+  margin:0 12px 8px;box-shadow:0 2px 8px rgba(0,0,0,.07);
+  display:flex;align-items:center;gap:14px;}
+.s-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.s-info{flex:1;}
+.s-title{font-size:12px;color:#888;}
+.s-val{font-size:18px;font-weight:700;color:var(--dark);}
+.s-sub{font-size:11px;color:#bbb;}
+
+/* ─── ROKAR ──────────────────────────────────────────────── */
+.cash-summary{margin:12px;padding:14px;background:#f1fdf3;
+  border-radius:12px;border:1px solid #43A047;
+  display:flex;justify-content:space-around;}
+.cash-stat{text-align:center;}
+.cs-lbl{font-size:11px;color:#888;margin-bottom:3px;}
+.cs-val{font-size:16px;font-weight:700;}
+.entry-tile{display:flex;align-items:center;gap:12px;padding:12px 14px;
+  background:#fff;border-bottom:1px solid #f0f0f0;}
+.entry-arrow{width:32px;height:32px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.arrow-in{background:#e8f5e9;}.arrow-out{background:#ffebee;}
+.e-info{flex:1;}
+.e-title{font-size:13px;font-weight:600;color:var(--dark);}
+.e-date{font-size:11px;color:#aaa;}
+.e-amount{font-size:14px;font-weight:700;}
+
+/* ─── SCHEMES ────────────────────────────────────────────── */
+.scheme-card{background:#fff;border-radius:var(--r);padding:14px;
+  margin:10px 12px;box-shadow:0 2px 8px rgba(0,0,0,.07);
+  display:flex;align-items:center;gap:12px;}
+.s-icon{width:44px;height:44px;border-radius:10px;background:rgba(255,193,7,.15);
+  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+
+/* ─── SCANNER ────────────────────────────────────────────── */
+.scanner-wrap{display:flex;flex-direction:column;align-items:center;
+  justify-content:center;height:100%;padding:24px;background:#111;}
+.scanner-frame{width:220px;height:220px;border:3px solid var(--gold);
+  border-radius:16px;position:relative;display:flex;align-items:center;justify-content:center;}
+.scanner-frame::before,.scanner-frame::after{
+  content:'';position:absolute;width:30px;height:30px;border-color:var(--gold-lt);border-style:solid;}
+.scanner-frame::before{top:-3px;left:-3px;border-width:4px 0 0 4px;border-radius:8px 0 0 0;}
+.scanner-frame::after{bottom:-3px;right:-3px;border-width:0 4px 4px 0;border-radius:0 0 8px 0;}
+.scan-line{width:100%;height:2px;background:var(--gold-lt);
+  animation:scanAnim 2s linear infinite;position:absolute;}
+@keyframes scanAnim{0%{top:10px;}50%{top:210px;}100%{top:10px;}}
+.scanner-text{color:rgba(255,255,255,.7);font-size:14px;margin-top:24px;}
+.scanner-hint{color:rgba(255,255,255,.4);font-size:12px;margin-top:8px;}
+.btn-scan-manual{margin-top:28px;padding:10px 28px;background:var(--gold);
+  color:var(--dark);border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;}
+
+/* ─── TOAST ──────────────────────────────────────────────── */
+.toast{position:absolute;bottom:72px;left:12px;right:12px;padding:10px 14px;
+  border-radius:10px;font-size:13px;color:#fff;font-weight:500;z-index:100;
+  opacity:0;transition:opacity .3s;pointer-events:none;}
+.toast.show{opacity:1;}
+.toast.err{background:var(--err);}
+.toast.ok{background:var(--ok);}
+
+/* ─── ADD ORNAMENT ───────────────────────────────────────── */
+.add-form{padding:14px 12px;}
+.add-form .f-row{margin-bottom:12px;}
+.add-form label{font-size:11px;color:#666;display:block;margin-bottom:4px;}
+.add-form input,.add-form select{width:100%;height:40px;border:1.5px solid #ddd;
+  border-radius:8px;padding:0 10px;font-size:13px;background:#fafafa;outline:none;}
+.add-form .two{display:flex;gap:8px;}
+.add-form .two .f-row{flex:1;}
+
+/* ─── CUSTOMER DETAIL ────────────────────────────────────── */
+.cust-header{background:var(--dark);padding:20px 16px;display:flex;align-items:center;gap:14px;}
+.cust-av{width:56px;height:56px;border-radius:50%;background:var(--gold);
+  color:var(--dark);display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:700;}
+.cust-name{color:#fff;font-size:18px;font-weight:700;}
+.cust-phone{color:rgba(255,255,255,.6);font-size:13px;margin-top:2px;}
+.kyc-chip{background:rgba(67,160,71,.2);color:#a5d6a7;font-size:11px;
+  padding:2px 8px;border-radius:12px;margin-top:4px;display:inline-block;}
+
+/* ─── MODAL OVERLAY ──────────────────────────────────────── */
+.modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:200;
+  display:flex;flex-direction:column;justify-content:flex-end;opacity:0;
+  pointer-events:none;transition:opacity .25s;}
+.modal-backdrop.open{opacity:1;pointer-events:all;}
+.modal-sheet{background:#fff;border-radius:20px 20px 0 0;padding:0 0 24px;
+  transform:translateY(100%);transition:transform .25s;}
+.modal-backdrop.open .modal-sheet{transform:translateY(0);}
+.modal-handle{width:36px;height:4px;background:#ddd;border-radius:2px;
+  margin:12px auto 0;}
+.modal-title{font-size:16px;font-weight:700;color:var(--dark);padding:14px 16px 10px;}
+.modal-item{display:flex;align-items:center;gap:12px;padding:12px 16px;
+  cursor:pointer;border-bottom:1px solid #f5f5f5;transition:background .15s;}
+.modal-item:hover{background:#fafafa;}
+.modal-item:last-child{border-bottom:none;}
+.modal-close{display:block;width:calc(100% - 32px);margin:12px 16px 0;
+  height:44px;background:#f5f5f5;color:#555;border:none;border-radius:10px;
+  font-size:14px;cursor:pointer;}
+
+/* ─── SCANNER RESULT ─────────────────────────────────────── */
+.scan-result{background:#fff;border-radius:16px;padding:16px;
+  position:absolute;bottom:72px;left:12px;right:12px;
+  box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:50;
+  transform:translateY(120%);transition:transform .3s;}
+.scan-result.show{transform:translateY(0);}
+
+/* ─── RATE UPDATE FORM ───────────────────────────────────── */
+.rate-input-row{display:flex;align-items:center;gap:10px;padding:8px 0;
+  border-bottom:1px solid #f5f5f5;}
+.rate-input-row label{flex:1;font-size:13px;color:#444;}
+.rate-input-row input{width:90px;height:36px;border:1.5px solid #ddd;
+  border-radius:8px;padding:0 8px;font-size:13px;text-align:right;outline:none;}
+.rate-input-row input:focus{border-color:var(--gold);}
+
+/* ─── SCHEME ENROLL ──────────────────────────────────────── */
+.scheme-detail-card{background:#fff;border-radius:var(--r);
+  padding:16px;margin:10px 12px;box-shadow:0 2px 8px rgba(0,0,0,.07);}
+.enroll-row{display:flex;align-items:center;justify-content:space-between;
+  padding:6px 0;border-bottom:1px solid #f5f5f5;font-size:13px;}
+.enroll-row:last-child{border-bottom:none;}
+
+/* ─── OLD GOLD SECTION ───────────────────────────────────── */
+.old-gold-card{background:#fff8e1;border-radius:10px;padding:12px 14px;
+  margin:0 12px 10px;border:1.5px solid #FFD54F;}
+.og-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.og-row label{font-size:12px;color:#666;width:90px;flex-shrink:0;}
+.og-row input{flex:1;height:36px;border:1.5px solid #ddd;border-radius:8px;
+  padding:0 8px;font-size:13px;outline:none;}
+.og-credit{font-size:14px;font-weight:700;color:#E65100;margin-top:4px;}
+
+/* ─── SCROLLBAR HIDE ─────────────────────────────────────── */
+.filter-row::-webkit-scrollbar{display:none;}
+
+/* ─── STAFF / VENDOR ─────────────────────────────────────── */
+.staff-tile,.vendor-tile{display:flex;align-items:center;gap:12px;padding:12px 14px;
+  background:#fff;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .15s;}
+.staff-tile:hover,.vendor-tile:hover{background:#fafafa;}
+.role-badge{font-size:10px;padding:2px 8px;border-radius:12px;font-weight:600;display:inline-block;}
+.role-owner{background:rgba(212,175,55,.2);color:#8B6914;}
+.role-manager{background:rgba(21,101,192,.15);color:#1565C0;}
+.role-salesman{background:rgba(67,160,71,.15);color:#2e7d32;}
+.role-tagger{background:rgba(156,39,176,.15);color:#7B1FA2;}
+.role-accountant{background:rgba(255,87,34,.15);color:#BF360C;}
+.vendor-av{width:40px;height:40px;border-radius:10px;background:rgba(212,175,55,.12);
+  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+
+/* ─── COMPACT MODAL FORM ─────────────────────────────────── */
+.mf{padding:0 16px;max-height:340px;overflow-y:auto;}
+.mf .fr{margin-bottom:10px;}
+.mf label{font-size:11px;color:#666;display:block;margin-bottom:3px;}
+.mf input,.mf select,.mf textarea{width:100%;height:40px;border:1.5px solid #ddd;
+  border-radius:8px;padding:0 10px;font-size:13px;background:#fafafa;outline:none;box-sizing:border-box;}
+.mf textarea{height:auto;padding:8px 10px;resize:none;}
+.mf input:focus,.mf select:focus{border-color:var(--gold);}
+.mf .two{display:flex;gap:8px;}.mf .two .fr{flex:1;}
+.m-acts{display:flex;gap:10px;padding:12px 16px 0;}
+.m-acts button{flex:1;height:44px;border:none;border-radius:10px;font-size:14px;cursor:pointer;}
+.m-acts .bc{background:#f5f5f5;color:#555;}.m-acts .bs{background:var(--gold);color:var(--dark);font-weight:700;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px;}
+.toggle-sw{width:44px;height:24px;background:#ddd;border-radius:12px;position:relative;cursor:pointer;border:none;transition:background .2s;}
+.toggle-sw.on{background:#43A047;}
+.toggle-sw::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .2s;}
+.toggle-sw.on::after{left:22px;}
+
+/* ─── QUICK ACTIONS GRID ─────────────────────────────────── */
+.quick-acts{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;
+  margin:0 12px 10px;padding:10px 4px;background:#fff;border-radius:var(--r);
+  box-shadow:0 2px 8px rgba(0,0,0,.07);}
+.qa{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;
+  border:none;background:transparent;cursor:pointer;border-radius:8px;width:100%;}
+.qa:hover{background:#f5f5f5;}
+.qa .qi{font-size:22px;}.qa .ql{font-size:9px;color:#555;font-weight:600;text-align:center;line-height:1.2;}
+
+/* ─── ACTIVITY FEED ──────────────────────────────────────── */
+.act-item{display:flex;align-items:center;gap:10px;padding:9px 14px;
+  background:#fff;border-bottom:1px solid #f5f5f5;}
+.act-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.act-desc{flex:1;font-size:12px;color:#444;line-height:1.4;}
+.act-time{color:#bbb;font-size:10px;white-space:nowrap;}
+
+/* ─── HORIZONTAL BAR CHART ───────────────────────────────── */
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.bar-lbl{font-size:11px;color:#555;width:72px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-track{flex:1;height:13px;background:#f0f0f0;border-radius:7px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:7px;}
+.bar-val{font-size:10px;font-weight:700;color:#333;width:46px;text-align:right;flex-shrink:0;}
+
+/* ─── SECTION HEADER ─────────────────────────────────────── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 12px 6px;font-size:13px;font-weight:700;color:var(--dark);}
+.sec-hdr .see-all{font-size:11px;font-weight:400;color:var(--gold);cursor:pointer;}
+</style>
+</head>
+<body>
+
+<h1>💎 Jewellery ERP — Interactive Prototype</h1>
+<p class="meta">Click nav tabs · Login · Browse inventory · Generate bills · Full flow</p>
+
+<div class="phone" id="phone">
+  <div class="status-bar"><span id="clock">9:41</span><span>●●● WiFi 🔋</span></div>
+
+  <!-- ══════════ LOGIN ══════════ -->
+  <div class="screen active" id="s-login" style="background:var(--dark);flex-direction:column;align-items:center;justify-content:center;padding:28px;">
+    <div class="logo">💎</div>
+    <div class="login-title">Jewellery ERP</div>
+    <div class="login-sub">Staff Login</div>
+    <div class="form-card">
+      <label class="f-label">Phone Number</label>
+      <div class="f-wrap">
+        📞 <span class="f-prefix">+91</span>
+        <input type="tel" id="inp-phone" placeholder="9876543210" maxlength="10">
+      </div>
+      <label class="f-label">Password</label>
+      <div class="f-wrap">
+        🔒 <input type="password" id="inp-pwd" placeholder="password" value="">
+        <span style="cursor:pointer;color:#aaa" onclick="togglePwd()">👁</span>
+      </div>
+      <div style="margin-bottom:10px;">
+        <label class="f-label">Role (demo)</label>
+        <div class="f-wrap" style="height:38px;padding:0 8px;">
+          <select id="sel-role" style="flex:1;border:none;background:transparent;outline:none;font-size:13px;">
+            <option value="owner">Owner</option>
+            <option value="manager">Manager</option>
+            <option value="salesman">Salesman</option>
+            <option value="tagger">Tagger</option>
+            <option value="accountant">Accountant</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-gold" onclick="doLogin()">Login</button>
+      <div class="err-msg" id="login-err"></div>
+    </div>
+    <div class="role-hint">Demo: any phone + password "demo"</div>
+  </div>
+
+  <!-- ══════════ DASHBOARD ══════════ -->
+  <div class="screen" id="s-dashboard" style="flex-direction:column;">
+    <div class="app-bar">
+      Dashboard
+      <div class="trailing"><div class="icon-btn" onclick="refreshDash()">🔄</div></div>
+    </div>
+    <div class="scroll" id="dash-scroll">
+      <div class="seg-bar" id="seg-period">
+        <button class="seg-btn on" onclick="setPeriod('today',this)">Today</button>
+        <button class="seg-btn" onclick="setPeriod('week',this)">Week</button>
+        <button class="seg-btn" onclick="setPeriod('month',this)">Month</button>
+        <button class="seg-btn" onclick="setPeriod('year',this)">Year</button>
+      </div>
+      <div id="dash-content"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ INVENTORY ══════════ -->
+  <div class="screen" id="s-inventory" style="flex-direction:column;">
+    <div class="app-bar">
+      Inventory
+      <div class="trailing"><div class="icon-btn" onclick="goTo('s-add-ornament')">➕</div></div>
+    </div>
+    <div class="scroll">
+      <div class="search-bar">🔍 <input id="inv-search" placeholder="Search by name or tag code..." style="border:none;outline:none;flex:1;font-size:13px;background:transparent;" oninput="renderInventory()"></div>
+      <div class="filter-row" id="inv-filters">
+        <button class="fc on" onclick="setInvFilter('all',this)">All</button>
+        <button class="fc" onclick="setInvFilter('in_stock',this)">In Stock</button>
+        <button class="fc" onclick="setInvFilter('reserved',this)">Reserved</button>
+        <button class="fc" onclick="setInvFilter('sold',this)">Sold</button>
+        <button class="fc" onclick="setInvFilter('gold_22k',this)">Gold 22K</button>
+        <button class="fc" onclick="setInvFilter('gold_18k',this)">Gold 18K</button>
+        <button class="fc" onclick="setInvFilter('silver',this)">Silver</button>
+      </div>
+      <div id="inv-list"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ ORNAMENT DETAIL ══════════ -->
+  <div class="screen" id="s-ornament-detail" style="flex-direction:column;">
+    <div class="app-bar">
+      <span class="back" onclick="goBack()">‹</span>
+      Ornament Details
+    </div>
+    <div class="scroll" id="orn-detail-body"></div>
+  </div>
+
+  <!-- ══════════ ADD ORNAMENT ══════════ -->
+  <div class="screen" id="s-add-ornament" style="flex-direction:column;">
+    <div class="app-bar">
+      <span class="back" onclick="goBack()">‹</span>
+      Add Ornament
+    </div>
+    <div class="scroll">
+      <div class="add-form">
+        <!-- Basic Info -->
+        <div class="det-card" style="margin:10px 12px;">
+          <h3>Basic Info</h3>
+          <div class="f-row">
+            <label>Ornament Name *</label>
+            <input id="ao-name" placeholder="e.g. Gold Necklace 22K">
+          </div>
+          <div class="two" style="margin-top:10px;">
+            <div class="f-row">
+              <label>Metal Type *</label>
+              <select id="ao-metal" onchange="calcLivePrice()">
+                <option value="gold_22k">22K Gold</option>
+                <option value="gold_18k">18K Gold</option>
+                <option value="gold_24k">24K Gold</option>
+                <option value="gold_14k">14K Gold</option>
+                <option value="silver">Silver</option>
+                <option value="silver_925">Sterling 925</option>
+              </select>
+            </div>
+            <div class="f-row">
+              <label>Category *</label>
+              <select id="ao-cat">
+                <option value="RNG">Ring</option>
+                <option value="NCK">Necklace</option>
+                <option value="EAR">Earring</option>
+                <option value="BNG">Bangle</option>
+                <option value="BRC">Bracelet</option>
+                <option value="CHN">Chain</option>
+                <option value="PND">Pendant</option>
+                <option value="ANK">Anklet</option>
+                <option value="MGS">Mangalsutra</option>
+                <option value="NSR">Nose Ring</option>
+                <option value="OTH">Other</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <!-- Weights -->
+        <div class="det-card" style="margin:0 12px 10px;">
+          <h3>Weights (grams)</h3>
+          <div class="two">
+            <div class="f-row">
+              <label>Gross Weight *</label>
+              <input id="ao-gross" type="number" placeholder="0.00" step="0.01" oninput="calcLivePrice()">
+            </div>
+            <div class="f-row">
+              <label>Net Weight *</label>
+              <input id="ao-net" type="number" placeholder="0.00" step="0.01" oninput="calcLivePrice()">
+            </div>
+          </div>
+          <div class="two" style="margin-top:10px;">
+            <div class="f-row">
+              <label>Stone Weight</label>
+              <input id="ao-stone-wt" type="number" placeholder="0.00" step="0.01" oninput="calcLivePrice()">
+            </div>
+            <div class="f-row">
+              <label>Stone Rate (₹/g)</label>
+              <input id="ao-stone-rate" type="number" placeholder="0" oninput="calcLivePrice()">
+            </div>
+          </div>
+        </div>
+        <!-- Making Charges -->
+        <div class="det-card" style="margin:0 12px 10px;">
+          <h3>Making Charges</h3>
+          <div class="f-row">
+            <label>Charge Type</label>
+            <select id="ao-making-type" onchange="updateMakingLabel();calcLivePrice()">
+              <option value="per_gram">Per Gram (₹/g)</option>
+              <option value="percent">Percentage (%)</option>
+            </select>
+          </div>
+          <div class="two" style="margin-top:10px;">
+            <div class="f-row">
+              <label id="making-lbl">Making Rate (₹/g) *</label>
+              <input id="ao-making" type="number" placeholder="0" oninput="calcLivePrice()">
+            </div>
+            <div class="f-row">
+              <label>Hallmark (₹)</label>
+              <input id="ao-hallmark" type="number" placeholder="45" value="45" oninput="calcLivePrice()">
+            </div>
+          </div>
+          <div class="f-row" style="margin-top:10px;">
+            <label>Other Charges (₹)</label>
+            <input id="ao-other" type="number" placeholder="0" oninput="calcLivePrice()">
+          </div>
+        </div>
+        <!-- Live Price Preview -->
+        <div class="bill-summary" style="margin:0 12px 10px;">
+          <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:8px">📊 Live Price Estimate</div>
+          <div class="sum-row"><span>Gold Value</span><span id="prev-gold">₹0.00</span></div>
+          <div class="sum-row"><span>Making Charge</span><span id="prev-making">₹0.00</span></div>
+          <div class="sum-row"><span>Stone Value</span><span id="prev-stone">₹0.00</span></div>
+          <div class="sum-row"><span>Hallmark + Other</span><span id="prev-extra">₹0.00</span></div>
+          <div class="sum-row" style="color:#E65100"><span>GST (3%)</span><span id="prev-gst">₹0.00</span></div>
+          <div class="sum-total"><span>Pakka Total</span><span id="prev-total" style="color:var(--gold)">₹0.00</span></div>
+        </div>
+        <!-- Notes -->
+        <div class="det-card" style="margin:0 12px 10px;">
+          <h3>Notes</h3>
+          <div class="f-row">
+            <label>Description / Notes</label>
+            <textarea id="ao-desc" rows="2" style="width:100%;border:1.5px solid #ddd;border-radius:8px;padding:8px;font-size:13px;resize:none;outline:none;" placeholder="e.g. Stone type, finish, design notes..."></textarea>
+          </div>
+        </div>
+        <button class="btn-gold" style="margin:0 12px 20px;width:calc(100% - 24px);height:46px;" onclick="saveOrnament()">✅ Add Ornament &amp; Generate Tag</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ BILLING ══════════ -->
+  <div class="screen" id="s-billing" style="flex-direction:column;">
+    <div class="app-bar">Billing</div>
+    <div class="scroll" style="display:flex;align-items:center;justify-content:center;">
+      <div class="billing-center">
+        <div class="b-title">Select Bill Type</div>
+        <div class="b-sub">Pakka bills include GST and are legally required for card/UPI payments.</div>
+        <div class="bill-card green" onclick="goTo('s-pakka')">
+          <div class="b-icon green">🧾</div>
+          <div>
+            <div class="b-name green">Pakka Bill</div>
+            <div class="b-desc">With GST · Legal · Card/UPI/Cash</div>
+          </div>
+          <div class="b-arr green">›</div>
+        </div>
+        <div class="bill-card blue" onclick="goTo('s-kacha')">
+          <div class="b-icon blue">📋</div>
+          <div>
+            <div class="b-name blue">Kacha Bill</div>
+            <div class="b-desc">No GST · Cash Only · Internal</div>
+          </div>
+          <div class="b-arr blue">›</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ PAKKA BILL ══════════ -->
+  <div class="screen" id="s-pakka" style="flex-direction:column;">
+    <div class="app-bar">
+      <span class="back" onclick="goTo('s-billing')">‹</span>
+      Pakka Bill
+      <div class="trailing" style="background:rgba(67,160,71,.15);border-radius:6px;padding:2px 8px;font-size:11px;color:#43A047;font-weight:600;">WITH GST</div>
+    </div>
+    <div class="scroll">
+      <!-- Customer -->
+      <div class="bill-section">
+        <h4>Customer</h4>
+        <div class="customer-tile" id="pakka-cust-tile" onclick="selectCustomer('pakka')">
+          <div style="font-size:22px">👤</div>
+          <div class="info"><div style="font-size:13px;color:#888">Tap to select customer *</div></div>
+          <div style="color:#ccc">›</div>
+        </div>
+      </div>
+      <!-- Cart -->
+      <div class="bill-section" style="padding-bottom:0">
+        <h4>Items <span style="font-weight:400;font-size:11px;color:#aaa">(scan or tap from inventory)</span></h4>
+        <div id="pakka-cart"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button onclick="addCartItemPakka()" style="flex:1;height:36px;border:1.5px dashed #43A047;background:transparent;border-radius:8px;color:#43A047;font-size:12px;cursor:pointer;">＋ Add Item</button>
+          <button onclick="goTo('s-scanner')" style="height:36px;padding:0 12px;border:1.5px solid #ddd;background:#fff;border-radius:8px;color:#555;font-size:12px;cursor:pointer;">📷 Scan</button>
+        </div>
+      </div>
+      <!-- Payment -->
+      <div class="bill-section">
+        <h4>Payment Mode</h4>
+        <div class="pay-sel" id="pakka-pay">
+          <button class="pay-opt" onclick="setPay('pakka','cash',this)">💵 Cash</button>
+          <button class="pay-opt on" onclick="setPay('pakka','upi',this)">📱 UPI</button>
+          <button class="pay-opt" onclick="setPay('pakka','card',this)">💳 Card</button>
+          <button class="pay-opt" onclick="setPay('pakka','bank',this)">🏦 Bank</button>
+        </div>
+      </div>
+      <!-- Summary -->
+      <div class="bill-summary">
+        <div class="sum-row"><span>Subtotal</span><span id="pakka-sub">₹0.00</span></div>
+        <div class="sum-row"><span>GST (3%)</span><span id="pakka-gst" style="color:#E65100">₹0.00</span></div>
+        <div class="sum-total"><span>Total</span><span id="pakka-total">₹0.00</span></div>
+      </div>
+      <button class="btn-green" onclick="generateBill('pakka')">Generate Pakka Bill</button>
+    </div>
+  </div>
+
+  <!-- ══════════ KACHA BILL ══════════ -->
+  <div class="screen" id="s-kacha" style="flex-direction:column;">
+    <div class="app-bar">
+      <span class="back" onclick="goTo('s-billing')">‹</span>
+      Kacha Bill
+      <div class="trailing" style="background:rgba(21,101,192,.15);border-radius:6px;padding:2px 8px;font-size:11px;color:#1565C0;font-weight:600;">CASH ONLY</div>
+    </div>
+    <div class="scroll">
+      <div class="bill-section">
+        <h4>Customer <span style="font-weight:400;color:#bbb">(optional)</span></h4>
+        <div class="customer-tile" id="kacha-cust-tile" onclick="selectCustomer('kacha')">
+          <div style="font-size:22px">👤</div>
+          <div class="info"><div style="font-size:13px;color:#888">Tap to select customer</div></div>
+          <div style="color:#ccc">›</div>
+        </div>
+      </div>
+      <div class="bill-section" style="padding-bottom:0">
+        <h4>Items</h4>
+        <div id="kacha-cart"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button onclick="addCartItemKacha()" style="flex:1;height:36px;border:1.5px dashed #1565C0;background:transparent;border-radius:8px;color:#1565C0;font-size:12px;cursor:pointer;">＋ Add Item</button>
+          <button onclick="goTo('s-scanner')" style="height:36px;padding:0 12px;border:1.5px solid #ddd;background:#fff;border-radius:8px;color:#555;font-size:12px;cursor:pointer;">📷 Scan</button>
+        </div>
+      </div>
+      <!-- Old Gold Exchange -->
+      <div class="bill-section">
+        <h4>Old Gold Exchange <span style="font-weight:400;color:#bbb;font-size:10px">(optional)</span></h4>
+        <div class="old-gold-card">
+          <div class="og-row"><label>Metal Type</label>
+            <select id="og-metal" onchange="calcOldGold()" style="flex:1;height:36px;border:1.5px solid #ddd;border-radius:8px;padding:0 8px;font-size:13px;outline:none;">
+              <option value="gold_22k">22K Gold</option>
+              <option value="gold_18k">18K Gold</option>
+              <option value="gold_24k">24K Gold</option>
+              <option value="silver">Silver</option>
+            </select>
+          </div>
+          <div class="og-row"><label>Weight (g)</label><input id="og-weight" type="number" placeholder="0.00" step="0.01" oninput="calcOldGold()"></div>
+          <div class="og-row"><label>Purity %</label><input id="og-purity" type="number" placeholder="100" value="100" max="100" oninput="calcOldGold()"></div>
+          <div class="og-credit" id="og-credit-display">Old gold credit: ₹0.00</div>
+        </div>
+      </div>
+      <div class="bill-section">
+        <h4>Payment Note</h4>
+        <div style="background:#fff3cd;border-radius:8px;padding:10px;font-size:12px;color:#856404;">⚠️ Kacha bills are for cash transactions only. No GST applies. For reference/internal use.</div>
+      </div>
+      <div class="bill-summary" style="background:#e8f0fe;">
+        <div class="sum-row"><span>Subtotal</span><span id="kacha-sub">₹0.00</span></div>
+        <div class="sum-row" style="color:#43A047"><span>Old Gold Credit</span><span id="kacha-og">−₹0.00</span></div>
+        <div class="sum-total"><span>Net Payable (No GST)</span><span id="kacha-total">₹0.00</span></div>
+      </div>
+      <button class="btn-green" style="background:#1565C0;" onclick="generateBill('kacha')">Generate Kacha Bill</button>
+    </div>
+  </div>
+
+  <!-- ══════════ BILL SUCCESS ══════════ -->
+  <div class="screen" id="s-success">
+    <div class="success-icon">✅</div>
+    <div class="suc-title">Bill Generated!</div>
+    <div class="suc-bill" id="suc-bill-no">BILL-2026-001</div>
+    <div id="suc-type" style="font-size:12px;color:#888;margin-bottom:4px;"></div>
+    <div id="suc-cust" style="font-size:12px;color:#888;margin-bottom:16px;"></div>
+    <div class="suc-amount" id="suc-amount">Total: ₹0.00</div>
+    <div class="btn-row">
+      <button class="btn-outline" onclick="showToast('PDF downloaded!','ok')">⬇ Download PDF</button>
+      <button class="btn-filled" onclick="goTo('s-billing')">＋ New Bill</button>
+    </div>
+    <button class="link-btn" onclick="goTo('s-dashboard')">Go to Dashboard</button>
+  </div>
+
+  <!-- ══════════ SCANNER ══════════ -->
+  <div class="screen" id="s-scanner" style="flex-direction:column;">
+    <div class="app-bar" style="background:#111;color:var(--gold);">
+      Scanner
+      <div class="trailing">
+        <div class="icon-btn" onclick="toggleTorch()" id="torch-btn">🔦</div>
+      </div>
+    </div>
+    <div class="scanner-wrap" style="position:relative;flex:1;background:#111;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+      <!-- Fake camera view -->
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#1a1a2e,#0d1117);opacity:.9;"></div>
+      <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;">
+        <div class="scanner-frame" id="scan-frame">
+          <div class="scan-line" id="scan-line"></div>
+          <div style="font-size:60px;opacity:.08;">📷</div>
+          <!-- Corner highlights -->
+          <div style="position:absolute;top:-3px;right:-3px;width:30px;height:30px;
+            border-top:4px solid var(--gold-lt);border-right:4px solid var(--gold-lt);border-radius:0 8px 0 0;"></div>
+          <div style="position:absolute;bottom:-3px;left:-3px;width:30px;height:30px;
+            border-bottom:4px solid var(--gold-lt);border-left:4px solid var(--gold-lt);border-radius:0 0 0 8px;"></div>
+        </div>
+        <div class="scanner-text" style="z-index:2;margin-top:24px;color:rgba(255,255,255,.8);">Point camera at jewellery tag</div>
+        <div class="scanner-hint" style="z-index:2;color:rgba(255,255,255,.4);font-size:12px;margin-top:6px;">QR code · Barcode · Tag ID</div>
+        <!-- Manual entry -->
+        <div style="z-index:2;margin-top:20px;display:flex;gap:8px;">
+          <input id="manual-tag" placeholder="Enter tag code..." style="height:40px;padding:0 12px;border:1.5px solid rgba(212,175,55,.5);
+            border-radius:10px;background:rgba(255,255,255,.08);color:#fff;font-size:13px;outline:none;width:160px;"
+            onkeydown="if(event.key==='Enter')manualScan()">
+          <button onclick="manualScan()" style="height:40px;padding:0 14px;background:var(--gold);color:var(--dark);
+            border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">Search</button>
+        </div>
+        <button class="btn-scan-manual" style="z-index:2;margin-top:16px;" onclick="simulateScan()">🎯 Simulate Scan</button>
+      </div>
+    </div>
+    <!-- Recent scans -->
+    <div style="background:#fff;padding:10px 14px;border-top:1px solid #eee;flex-shrink:0;">
+      <div style="font-size:11px;color:#aaa;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Recent Scans</div>
+      <div id="recent-scans" style="display:flex;gap:8px;overflow-x:auto;">
+        <div style="font-size:12px;color:#ccc;padding:4px 0;">None yet</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ CUSTOMERS ══════════ -->
+  <div class="screen" id="s-customers" style="flex-direction:column;">
+    <div class="app-bar">
+      Customers
+      <div class="trailing">
+        <div class="icon-btn" onclick="goTo('s-add-customer')">➕</div>
+      </div>
+    </div>
+    <div class="search-bar" style="margin:10px 12px;">🔍
+      <input id="cust-search" placeholder="Search customers..." style="border:none;outline:none;flex:1;font-size:13px;background:transparent;" oninput="renderCustomers()">
+    </div>
+    <div class="scroll" id="cust-list"></div>
+    <button class="fab" onclick="goTo('s-add-customer')">+</button>
+  </div>
+
+  <!-- ══════════ ADD CUSTOMER ══════════ -->
+  <div class="screen" id="s-add-customer" style="flex-direction:column;">
+    <div class="app-bar">
+      <span class="back" onclick="goBack()">‹</span>
+      Add Customer
+    </div>
+    <div class="scroll">
+      <div class="add-form">
+        <div class="det-card" style="margin:10px 12px;">
+          <h3>Personal Info</h3>
+          <div class="f-row"><label>Full Name *</label><input id="ac-name" placeholder="Customer name"></div>
+          <div class="f-row" style="margin-top:10px;"><label>Phone *</label>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span style="font-size:13px;color:#888;flex-shrink:0;">+91</span>
+              <input id="ac-phone" type="tel" placeholder="10-digit mobile" maxlength="10" style="flex:1;height:40px;border:1.5px solid #ddd;border-radius:8px;padding:0 10px;font-size:13px;outline:none;">
+            </div>
+          </div>
+          <div class="f-row" style="margin-top:10px;"><label>Email</label><input id="ac-email" type="email" placeholder="Optional"></div>
+        </div>
+        <div class="det-card" style="margin:0 12px 10px;">
+          <h3>Address</h3>
+          <div class="f-row"><label>Address</label>
+            <textarea id="ac-address" rows="2" style="width:100%;border:1.5px solid #ddd;border-radius:8px;padding:8px;font-size:13px;resize:none;outline:none;" placeholder="Street, City, State"></textarea>
+          </div>
+          <div class="two" style="margin-top:10px;">
+            <div class="f-row"><label>City</label><input id="ac-city" placeholder="Mumbai"></div>
+            <div class="f-row"><label>Pincode</label><input id="ac-pin" type="number" placeholder="400001"></div>
+          </div>
+        </div>
+        <div class="det-card" style="margin:0 12px 10px;">
+          <h3>KYC Documents</h3>
+          <div class="f-row"><label>Aadhaar / PAN</label><input id="ac-doc" placeholder="XXXX-XXXX-XXXX or ABCDE1234F"></div>
+          <div style="margin-top:10px;background:#e8f5e9;border-radius:8px;padding:10px;font-size:12px;color:#2e7d32;">
+            ✅ KYC required for purchases above ₹2 lakh as per government norms.
+          </div>
+        </div>
+        <button class="btn-gold" style="margin:0 12px 20px;width:calc(100% - 24px);height:46px;" onclick="saveCustomer()">Save Customer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ CUSTOMER DETAIL ══════════ -->
+  <div class="screen" id="s-customer-detail" style="flex-direction:column;">
+    <div class="app-bar">
+      <span class="back" onclick="goBack()">‹</span>
+      Customer Detail
+      <div class="trailing"><div class="icon-btn" onclick="editCustomer()">✏️</div></div>
+    </div>
+    <div class="scroll" id="cust-detail-body"></div>
+  </div>
+
+  <!-- ══════════ SCHEMES ══════════ -->
+  <div class="screen" id="s-schemes" style="flex-direction:column;">
+    <div class="app-bar">
+      Schemes
+      <div class="trailing"><div class="icon-btn" onclick="openNewSchemeForm()">➕</div></div>
+    </div>
+    <div class="scroll" id="schemes-list"></div>
+  </div>
+
+  <!-- ══════════ ANALYTICS ══════════ -->
+  <div class="screen" id="s-analytics" style="flex-direction:column;">
+    <div class="app-bar">Analytics</div>
+    <div class="scroll" id="analytics-body"></div>
+  </div>
+
+  <!-- ══════════ RATES ══════════ -->
+  <div class="screen" id="s-rates" style="flex-direction:column;">
+    <div class="app-bar">
+      Metal Rates
+      <div class="trailing">
+        <div class="icon-btn" onclick="showToast('Rates refreshed','ok')">🔄</div>
+        <div class="icon-btn" onclick="showUpdateRateDialog()">➕</div>
+      </div>
+    </div>
+    <div class="scroll" id="rates-body"></div>
+  </div>
+
+  <!-- ══════════ ROKAR ══════════ -->
+  <div class="screen" id="s-rokar" style="flex-direction:column;">
+    <div class="app-bar">Rokar (Cash Flow)
+      <div class="trailing"><div class="icon-btn" onclick="openModal('add-rokar-modal')">➕</div></div>
+    </div>
+    <div class="scroll" id="rokar-body"></div>
+    <button class="fab" onclick="openModal('add-rokar-modal')">+</button>
+  </div>
+
+  <!-- ══════════ STAFF MANAGEMENT ══════════ -->
+  <div class="screen" id="s-staff" style="flex-direction:column;">
+    <div class="app-bar">Staff
+      <div class="trailing"><div class="icon-btn" onclick="openModal('add-staff-modal')">➕</div></div>
+    </div>
+    <div class="search-bar" style="margin:10px 12px;">🔍
+      <input id="staff-search" placeholder="Search staff..." style="border:none;outline:none;flex:1;font-size:13px;background:transparent;" oninput="renderStaff()">
+    </div>
+    <div class="scroll" id="staff-list"></div>
+  </div>
+
+  <!-- ══════════ STAFF DETAIL ══════════ -->
+  <div class="screen" id="s-staff-detail" style="flex-direction:column;">
+    <div class="app-bar">
+      <span class="back" onclick="goBack()">‹</span>
+      Staff Detail
+      <div class="trailing"><div class="icon-btn" id="staff-toggle-btn" onclick="toggleStaffStatus()">⏸️</div></div>
+    </div>
+    <div class="scroll" id="staff-detail-body"></div>
+  </div>
+
+  <!-- ══════════ VENDOR MANAGEMENT ══════════ -->
+  <div class="screen" id="s-vendors" style="flex-direction:column;">
+    <div class="app-bar">Vendors
+      <div class="trailing"><div class="icon-btn" onclick="openModal('add-vendor-modal')">➕</div></div>
+    </div>
+    <div class="scroll" id="vendor-list"></div>
+  </div>
+
+  <!-- ══════════ VENDOR DETAIL ══════════ -->
+  <div class="screen" id="s-vendor-detail" style="flex-direction:column;">
+    <div class="app-bar">
+      <span class="back" onclick="goBack()">‹</span>
+      Vendor Detail
+    </div>
+    <div class="scroll" id="vendor-detail-body"></div>
+  </div>
+
+  <!-- BOTTOM NAV (hidden on login/success) -->
+  <div class="bottom-nav" id="bottom-nav" style="display:none;">
+    <div class="nav-it" data-route="s-dashboard" onclick="navTo('s-dashboard',this)"><span>🏠</span>Dashboard</div>
+    <div class="nav-it" data-route="s-inventory" onclick="navTo('s-inventory',this)"><span>📦</span>Inventory</div>
+    <div class="nav-it" data-route="s-billing" onclick="navTo('s-billing',this)"><span>🧾</span>Billing</div>
+    <div class="nav-it" data-route="s-scanner" onclick="navTo('s-scanner',this)"><span>📷</span>Scanner</div>
+    <div class="nav-it" data-route="s-customers" onclick="navTo('s-customers',this)"><span>👥</span>Customers</div>
+    <div class="nav-it" data-route="s-schemes" onclick="navTo('s-schemes',this)" id="nav-schemes"><span>💰</span>Schemes</div>
+    <div class="nav-it" data-route="s-analytics" onclick="navTo('s-analytics',this)" id="nav-analytics"><span>📊</span>Analytics</div>
+    <div class="nav-it" data-route="s-rates" onclick="navTo('s-rates',this)" id="nav-rates"><span>💎</span>Rates</div>
+    <div class="nav-it" data-route="s-rokar" onclick="navTo('s-rokar',this)" id="nav-rokar"><span>🏦</span>Rokar</div>
+    <div class="nav-it" data-route="s-staff" onclick="navTo('s-staff',this)" id="nav-staff"><span>🪪</span>Staff</div>
+    <div class="nav-it" data-route="s-vendors" onclick="navTo('s-vendors',this)" id="nav-vendors"><span>🏪</span>Vendors</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ══════════ CUSTOMER PICKER MODAL ══════════ -->
+  <div class="modal-backdrop" id="cust-picker-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Select Customer</div>
+      <div id="cust-picker-list" style="max-height:320px;overflow-y:auto;"></div>
+      <button class="modal-close" onclick="closeModal('cust-picker-modal')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ══════════ RATE UPDATE MODAL ══════════ -->
+  <div class="modal-backdrop" id="rate-update-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Update Metal Rates</div>
+      <div style="padding:0 16px;max-height:360px;overflow-y:auto;">
+        <div style="font-size:12px;color:#888;margin-bottom:10px">Session:
+          <select id="ru-session" style="border:1px solid #ddd;border-radius:6px;padding:2px 6px;font-size:12px">
+            <option value="morning">Morning</option>
+            <option value="evening">Evening</option>
+          </select>
+        </div>
+        <div class="rate-input-row"><label>22K Gold (₹/g)</label><input id="ru-22k" type="number" value="6200"></div>
+        <div class="rate-input-row"><label>24K Gold (₹/g)</label><input id="ru-24k" type="number" value="6800"></div>
+        <div class="rate-input-row"><label>18K Gold (₹/g)</label><input id="ru-18k" type="number" value="5100"></div>
+        <div class="rate-input-row"><label>14K Gold (₹/g)</label><input id="ru-14k" type="number" value="3967"></div>
+        <div class="rate-input-row"><label>Silver (₹/g)</label><input id="ru-silver" type="number" value="85"></div>
+        <div class="rate-input-row"><label>Sterling 925 (₹/g)</label><input id="ru-925" type="number" value="79"></div>
+      </div>
+      <div style="display:flex;gap:10px;padding:12px 16px 0;">
+        <button class="modal-close" style="flex:1;background:#f5f5f5;margin:0" onclick="closeModal('rate-update-modal')">Cancel</button>
+        <button style="flex:1;height:44px;background:var(--gold);color:var(--dark);border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer" onclick="saveRates()">Save Rates</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SCHEME DETAIL MODAL ══════════ -->
+  <div class="modal-backdrop" id="scheme-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title" id="scheme-modal-title">Scheme Details</div>
+      <div id="scheme-modal-body" style="padding:0 16px;"></div>
+      <div style="display:flex;gap:10px;padding:12px 16px 0;">
+        <button class="modal-close" style="flex:1;background:#f5f5f5;margin:0" onclick="closeModal('scheme-modal')">Cancel</button>
+        <button style="flex:1;height:44px;background:var(--gold);color:var(--dark);border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer" onclick="enrollScheme()">Enroll Customer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ ORNAMENT PICKER MODAL (for kacha old gold) ══════════ -->
+  <div class="modal-backdrop" id="scan-result-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Tag Scanned ✅</div>
+      <div id="scan-result-body" style="padding:0 16px 4px;"></div>
+      <div style="display:flex;gap:10px;padding:12px 16px 0;">
+        <button class="modal-close" style="flex:1;background:#f5f5f5;margin:0" onclick="closeModal('scan-result-modal');resumeScan()">Rescan</button>
+        <button style="flex:1;height:44px;background:var(--gold);color:var(--dark);border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer" onclick="viewScannedOrnament()">View Details</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ ADD ROKAR ENTRY MODAL ══════════ -->
+  <div class="modal-backdrop" id="add-rokar-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Add Cash Entry</div>
+      <div class="mf">
+        <div class="fr">
+          <label>Entry Type *</label>
+          <select id="re-type">
+            <option value="cash_in">💵 Cash In (Income)</option>
+            <option value="cash_out">💸 Cash Out (Expense)</option>
+          </select>
+        </div>
+        <div class="fr">
+          <label>Description *</label>
+          <input id="re-desc" placeholder="e.g. Sale to Anita Sharma, Staff salary…">
+        </div>
+        <div class="fr">
+          <label>Amount (₹) *</label>
+          <input id="re-amount" type="number" placeholder="0.00">
+        </div>
+        <div class="fr">
+          <label>Notes</label>
+          <textarea id="re-notes" rows="2" placeholder="Optional notes…"></textarea>
+        </div>
+      </div>
+      <div class="m-acts">
+        <button class="bc" onclick="closeModal('add-rokar-modal')">Cancel</button>
+        <button class="bs" onclick="saveRokarEntry()">Save Entry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ ADD STAFF MODAL ══════════ -->
+  <div class="modal-backdrop" id="add-staff-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Add Staff Member</div>
+      <div class="mf">
+        <div class="fr">
+          <label>Full Name *</label>
+          <input id="ns-name" placeholder="Staff member name">
+        </div>
+        <div class="two">
+          <div class="fr">
+            <label>Phone *</label>
+            <input id="ns-phone" type="tel" placeholder="10-digit" maxlength="10">
+          </div>
+          <div class="fr">
+            <label>Role *</label>
+            <select id="ns-role">
+              <option value="manager">Manager</option>
+              <option value="salesman">Salesman</option>
+              <option value="tagger">Tagger</option>
+              <option value="accountant">Accountant</option>
+            </select>
+          </div>
+        </div>
+        <div class="fr">
+          <label>Password (initial)</label>
+          <input id="ns-pwd" type="password" placeholder="Set login password" value="demo">
+        </div>
+        <div style="background:#e8f5e9;border-radius:8px;padding:10px;font-size:12px;color:#2e7d32;margin-top:4px;">
+          ✅ Staff will login with their phone number + this password.
+        </div>
+      </div>
+      <div class="m-acts">
+        <button class="bc" onclick="closeModal('add-staff-modal')">Cancel</button>
+        <button class="bs" onclick="saveStaff()">Add Staff</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ ADD VENDOR MODAL ══════════ -->
+  <div class="modal-backdrop" id="add-vendor-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Add Vendor / Supplier</div>
+      <div class="mf">
+        <div class="fr">
+          <label>Company / Vendor Name *</label>
+          <input id="nv-name" placeholder="e.g. Mehta Gold Suppliers">
+        </div>
+        <div class="two">
+          <div class="fr">
+            <label>Contact Number *</label>
+            <input id="nv-contact" type="tel" placeholder="Phone number">
+          </div>
+          <div class="fr">
+            <label>Supply Type *</label>
+            <select id="nv-type">
+              <option value="gold">🥇 Gold</option>
+              <option value="silver">🥈 Silver</option>
+              <option value="diamond">💎 Diamond</option>
+              <option value="stones">💠 Stones</option>
+              <option value="mixed">📦 Mixed</option>
+            </select>
+          </div>
+        </div>
+        <div class="two">
+          <div class="fr">
+            <label>City</label>
+            <input id="nv-city" placeholder="Mumbai">
+          </div>
+          <div class="fr">
+            <label>GST Number</label>
+            <input id="nv-gst" placeholder="27XXXXX1234X1ZX">
+          </div>
+        </div>
+      </div>
+      <div class="m-acts">
+        <button class="bc" onclick="closeModal('add-vendor-modal')">Cancel</button>
+        <button class="bs" onclick="saveVendor()">Add Vendor</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ NEW SCHEME MODAL ══════════ -->
+  <div class="modal-backdrop" id="new-scheme-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Create New Scheme</div>
+      <div class="mf">
+        <div class="fr">
+          <label>Scheme Name *</label>
+          <input id="sch-name" placeholder="e.g. Diwali Gold Plan">
+        </div>
+        <div class="two">
+          <div class="fr">
+            <label>Duration (months) *</label>
+            <input id="sch-duration" type="number" placeholder="11" value="11" min="1" max="36">
+          </div>
+          <div class="fr">
+            <label>Monthly Amount (₹) *</label>
+            <input id="sch-amount" type="number" placeholder="2000">
+          </div>
+        </div>
+        <div class="two">
+          <div class="fr">
+            <label>Type</label>
+            <select id="sch-type">
+              <option value="gold">Gold</option>
+              <option value="silver">Silver</option>
+              <option value="diamond">Diamond</option>
+              <option value="mixed">Mixed</option>
+            </select>
+          </div>
+          <div class="fr">
+            <label>Bonus Month?</label>
+            <select id="sch-bonus-sel">
+              <option value="yes">Yes (free month)</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+        </div>
+        <div class="fr">
+          <label>Description</label>
+          <textarea id="sch-desc" rows="2" placeholder="Details about the scheme…"></textarea>
+        </div>
+      </div>
+      <div class="m-acts">
+        <button class="bc" onclick="closeModal('new-scheme-modal')">Cancel</button>
+        <button class="bs" onclick="saveNewScheme()">Create Scheme</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ EDIT CUSTOMER MODAL ══════════ -->
+  <div class="modal-backdrop" id="edit-cust-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Edit Customer</div>
+      <div class="mf">
+        <div class="fr"><label>Full Name *</label><input id="ec-name" placeholder="Customer name"></div>
+        <div class="fr"><label>Phone</label><input id="ec-phone" type="tel" placeholder="10-digit" maxlength="10"></div>
+        <div class="fr"><label>Address</label><textarea id="ec-address" rows="2" placeholder="Street, City"></textarea></div>
+        <div class="two">
+          <div class="fr"><label>City</label><input id="ec-city" placeholder="Mumbai"></div>
+          <div class="fr">
+            <label>KYC Status</label>
+            <select id="ec-kyc">
+              <option value="none">Not Verified</option>
+              <option value="verified">Verified ✅</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="m-acts">
+        <button class="bc" onclick="closeModal('edit-cust-modal')">Cancel</button>
+        <button class="bs" onclick="saveEditCustomer()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════ SCRIPT ═══════════════════ -->
+<script>
+/* ── DATA ─────────────────────────────────────── */
+const ORNAMENTS = [
+  {id:'1',tag_code:'TAG-001',name:'Gold Ring 22K',metal_type:'gold_22k',category:'Ring',status:'in_stock',gross_weight:8.5,net_weight:7.8,stone_weight:0,making_charge_value:120,making_charge_type:'per_gram',hallmark_charge:45,other_charges:0,stone_rate:0,icon:'💍',price:52700},
+  {id:'2',tag_code:'TAG-002',name:'Gold Necklace 22K',metal_type:'gold_22k',category:'Necklace',status:'in_stock',gross_weight:24.2,net_weight:22.1,stone_weight:0,making_charge_value:110,making_charge_type:'per_gram',hallmark_charge:45,other_charges:0,stone_rate:0,icon:'📿',price:150040},
+  {id:'3',tag_code:'TAG-003',name:'Gold Earrings 18K',metal_type:'gold_18k',category:'Earrings',status:'sold',gross_weight:5.1,net_weight:4.6,stone_weight:0.5,making_charge_value:150,making_charge_type:'per_gram',hallmark_charge:45,other_charges:0,stone_rate:200,icon:'👂',price:28900},
+  {id:'4',tag_code:'TAG-004',name:'Silver Bracelet 925',metal_type:'silver',category:'Bracelet',status:'in_stock',gross_weight:32,net_weight:30,stone_weight:0,making_charge_value:15,making_charge_type:'per_gram',hallmark_charge:30,other_charges:0,stone_rate:0,icon:'🔗',price:3200},
+  {id:'5',tag_code:'TAG-005',name:'Diamond Ring 18K',metal_type:'gold_18k',category:'Ring',status:'in_stock',gross_weight:4.8,net_weight:4.0,stone_weight:0.8,making_charge_value:200,making_charge_type:'per_gram',hallmark_charge:45,other_charges:500,stone_rate:5000,icon:'💎',price:44200},
+  {id:'6',tag_code:'TAG-006',name:'Gold Bangle Set 22K',metal_type:'gold_22k',category:'Bangle',status:'in_stock',gross_weight:42.5,net_weight:40.2,stone_weight:0,making_charge_value:100,making_charge_type:'per_gram',hallmark_charge:45,other_charges:0,stone_rate:0,icon:'🔆',price:264000},
+  {id:'7',tag_code:'TAG-007',name:'Gold Pendant 22K',metal_type:'gold_22k',category:'Pendant',status:'in_stock',gross_weight:3.2,net_weight:2.9,stone_weight:0,making_charge_value:130,making_charge_type:'per_gram',hallmark_charge:45,other_charges:0,stone_rate:0,icon:'🏅',price:19200},
+  {id:'8',tag_code:'TAG-008',name:'Gold Mangalsutra 22K',metal_type:'gold_22k',category:'Mangalsutra',status:'in_stock',gross_weight:12.3,net_weight:11.8,stone_weight:0,making_charge_value:115,making_charge_type:'per_gram',hallmark_charge:45,other_charges:0,stone_rate:0,icon:'📿',price:77800},
+  {id:'9',tag_code:'TAG-009',name:'Silver Anklet',metal_type:'silver',category:'Anklet',status:'in_stock',gross_weight:28,net_weight:26,stone_weight:0,making_charge_value:12,making_charge_type:'per_gram',hallmark_charge:30,other_charges:0,stone_rate:0,icon:'🔗',price:2542},
+];
+
+const CUSTOMERS = [
+  {id:'c1',name:'Anita Sharma',phone:'+91 98765 43210',kyc_status:'verified',address:'12, MG Road, Mumbai',city:'Mumbai',balance:0,bills:[{no:'BILL-2026-018',date:'05 May 2026',type:'pakka',amount:52700},{no:'BILL-2026-009',date:'12 Apr 2026',type:'kacha',amount:19200}],schemes:['Monthly Gold Scheme']},
+  {id:'c2',name:'Rajesh Kumar',phone:'+91 91234 56789',kyc_status:'verified',address:'45, Civil Lines, Delhi',city:'Delhi',balance:5000,bills:[{no:'BILL-2026-015',date:'02 May 2026',type:'pakka',amount:264000}],schemes:[]},
+  {id:'c3',name:'Priya Mehta',phone:'+91 87654 32109',kyc_status:'none',address:'7, Lake View, Bangalore',city:'Bangalore',balance:0,bills:[],schemes:['Silver Monthly']},
+  {id:'c4',name:'Suresh Patel',phone:'+91 76543 21098',kyc_status:'verified',address:'22, Paldi, Ahmedabad',city:'Ahmedabad',balance:2500,bills:[{no:'BILL-2026-011',date:'25 Apr 2026',type:'pakka',amount:150040}],schemes:['Monthly Gold Scheme']},
+  {id:'c5',name:'Meena Joshi',phone:'+91 65432 10987',kyc_status:'none',address:'8, Arera Colony, Bhopal',city:'Bhopal',balance:0,bills:[],schemes:[]},
+  {id:'c6',name:'Vijay Desai',phone:'+91 54321 09876',kyc_status:'none',address:'3, Koregaon Park, Pune',city:'Pune',balance:1000,bills:[{no:'BILL-2026-007',date:'10 Apr 2026',type:'kacha',amount:3200}],schemes:[]},
+];
+
+const SCHEMES = [
+  {name:'Monthly Gold Scheme',duration_months:11,scheme_type:'gold',bonus_month:true,monthly_amount:2000,enrolled:28,description:'Pay ₹2000/month for 11 months. Get bonus 12th month free + 1% extra gold value.'},
+  {name:'Diamond Savings Plan',duration_months:12,scheme_type:'diamond',bonus_month:false,monthly_amount:5000,enrolled:12,description:'₹5000/month × 12 months. Redeem against any diamond jewellery. 2% loyalty bonus.'},
+  {name:'Silver Monthly',duration_months:6,scheme_type:'silver',bonus_month:true,monthly_amount:500,enrolled:45,description:'₹500/month × 6 months. Free bonus month + exclusive silver collection access.'},
+  {name:'Festival Plan',duration_months:3,scheme_type:'mixed',bonus_month:false,monthly_amount:10000,enrolled:8,description:'₹10000/month × 3 months. Redeemable during festival season. 3% extra on gold purchases.'},
+];
+
+const RATES = {gold_22k:6200,gold_24k:6800,gold_18k:5100,gold_14k:3967,silver:85,silver_925:79,rate_date:'09 May 2026',session:'morning',is_stale:true};
+
+const DASH_DATA = {
+  today:{revenue:247500,pakka_amount:182000,pakka_count:14,kacha_amount:65500,kacha_count:8,gst:5460,gold_stock:1247.35,inv:{in_stock:342,sold:22,reserved:5,returned:3}},
+  week:{revenue:1840000,pakka_amount:1250000,pakka_count:87,kacha_amount:590000,kacha_count:52,gst:37500,gold_stock:1247.35,inv:{in_stock:342,sold:145,reserved:12,returned:8}},
+  month:{revenue:7200000,pakka_amount:5100000,pakka_count:320,kacha_amount:2100000,kacha_count:190,gst:153000,gold_stock:1247.35,inv:{in_stock:342,sold:580,reserved:20,returned:15}},
+  year:{revenue:58000000,pakka_amount:41000000,pakka_count:2850,kacha_amount:17000000,kacha_count:1620,gst:1230000,gold_stock:1247.35,inv:{in_stock:342,sold:4200,reserved:20,returned:80}},
+};
+
+const ROKAR = {
+  total_cash_in:340000,total_cash_out:187000,net_cash:153000,
+  entries:[
+    {description:'Pakka Bill – Anita Sharma',entry_type:'cash_in',amount:52700,entry_date:'09 May 2026'},
+    {description:'Kacha Bill – Rajesh Kumar',entry_type:'cash_in',amount:28000,entry_date:'09 May 2026'},
+    {description:'Staff Salary – May Advance',entry_type:'cash_out',amount:15000,entry_date:'09 May 2026'},
+    {description:'Pakka Bill – Priya Mehta',entry_type:'cash_in',amount:150040,entry_date:'08 May 2026'},
+    {description:'Hallmark charges',entry_type:'cash_out',amount:2000,entry_date:'08 May 2026'},
+    {description:'Gold purchase – Mehta Supplier',entry_type:'cash_out',amount:170000,entry_date:'07 May 2026'},
+    {description:'Kacha Bill – Suresh Patel',entry_type:'cash_in',amount:109260,entry_date:'07 May 2026'},
+  ]
+};
+
+let recentScans = [];
+
+const STAFF = [
+  {id:'s1',name:'Ramesh Sharma',phone:'9876543210',role:'owner',status:'active',joined:'12 Jan 2025',last_login:'Today, 09:12 AM',sales:0},
+  {id:'s2',name:'Sunita Patel',phone:'9765432109',role:'manager',status:'active',joined:'03 Mar 2025',last_login:'Today, 09:45 AM',sales:0},
+  {id:'s3',name:'Dinesh Kumar',phone:'9654321098',role:'salesman',status:'active',joined:'01 Jun 2025',last_login:'Today, 08:50 AM',sales:148},
+  {id:'s4',name:'Anand Rao',phone:'9543210987',role:'tagger',status:'active',joined:'15 Aug 2025',last_login:'Today, 08:30 AM',sales:0},
+  {id:'s5',name:'Kavita Mehta',phone:'9432109876',role:'accountant',status:'active',joined:'20 Sep 2025',last_login:'Today, 10:00 AM',sales:0},
+  {id:'s6',name:'Prakash Singh',phone:'9321098765',role:'salesman',status:'inactive',joined:'05 Nov 2025',last_login:'12 Mar 2026',sales:34},
+];
+
+const VENDORS = [
+  {id:'v1',name:'Mehta Gold Suppliers',contact:'9876543201',city:'Ahmedabad',type:'gold',gst:'24MEHTA1234G1ZX',balance:150000,last_order:'05 May 2026',orders:12},
+  {id:'v2',name:'Patel Silver Works',contact:'9765432102',city:'Mumbai',type:'silver',gst:'27PATEL5678S1ZX',balance:25000,last_order:'01 May 2026',orders:8},
+  {id:'v3',name:'Diamond Palace Surat',contact:'9654321093',city:'Surat',type:'diamond',gst:'24DIAMD9012D1ZX',balance:0,last_order:'20 Apr 2026',orders:5},
+  {id:'v4',name:'Rajesh Stone Traders',contact:'9543210984',city:'Jaipur',type:'stones',gst:'08RAJST3456S1ZX',balance:8500,last_order:'28 Apr 2026',orders:18},
+];
+
+/* ── STATE ─────────────────────────────────────── */
+let currentScreen = 's-login';
+let prevScreen = null;
+let currentRole = 'owner';
+let dashPeriod = 'today';
+let invFilter = 'all';
+let pakkaCart = [], kachaCart = [];
+let pakkaCustomer = null, kachaCustomer = null;
+let billCount = 24;
+
+/* ── CLOCK ─────────────────────────────────────── */
+function updateClock(){
+  const n=new Date();
+  document.getElementById('clock').textContent=
+    n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
+}
+setInterval(updateClock,30000); updateClock();
+
+/* ── MODAL ─────────────────────────────────────── */
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+/* ── SCREEN NAV ─────────────────────────────────── */
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  prevScreen = currentScreen;
+  currentScreen = id;
+
+  const noNav = ['s-login','s-success','s-scanner','s-ornament-detail','s-add-ornament',
+    's-customer-detail','s-pakka','s-kacha','s-staff-detail','s-vendor-detail','s-add-customer'];
+  const nav = document.getElementById('bottom-nav');
+  if(id==='s-login') nav.style.display='none';
+  else nav.style.display='flex';
+
+  // Sync active nav dot
+  document.querySelectorAll('.nav-it').forEach(n=>n.classList.remove('on'));
+  const map = {'s-dashboard':'s-dashboard','s-inventory':'s-inventory','s-billing':'s-billing',
+    's-scanner':'s-scanner','s-customers':'s-customers','s-schemes':'s-schemes',
+    's-analytics':'s-analytics','s-rates':'s-rates','s-rokar':'s-rokar',
+    's-staff':'s-staff','s-vendors':'s-vendors',
+    's-ornament-detail':'s-inventory','s-add-ornament':'s-inventory',
+    's-customer-detail':'s-customers','s-add-customer':'s-customers',
+    's-pakka':'s-billing','s-kacha':'s-billing',
+    's-staff-detail':'s-staff','s-vendor-detail':'s-vendors'};
+  const base = map[id]||map[prevScreen];
+  document.querySelectorAll(`.nav-it[data-route="${base}"]`).forEach(n=>n.classList.add('on'));
+
+  // Lazy render
+  if(id==='s-dashboard') renderDash();
+  if(id==='s-inventory') renderInventory();
+  if(id==='s-customers') renderCustomers();
+  if(id==='s-rates') renderRates();
+  if(id==='s-rokar') renderRokar();
+  if(id==='s-schemes') renderSchemes();
+  if(id==='s-analytics') renderAnalytics();
+  if(id==='s-staff') renderStaff();
+  if(id==='s-vendors') renderVendors();
+  if(id==='s-add-ornament') calcLivePrice();
+}
+
+function goBack(){goTo(prevScreen||'s-dashboard');}
+
+function navTo(id,el){
+  document.querySelectorAll('.nav-it').forEach(n=>n.classList.remove('on'));
+  el.classList.add('on');
+  goTo(id);
+}
+
+/* ── ROLE NAV ─────────────────────────────────── */
+function applyRoleNav(role){
+  // restore all first
+  document.querySelectorAll('.nav-it').forEach(e=>e.style.display='flex');
+  if(role==='salesman'){
+    ['nav-schemes','nav-analytics','nav-rates','nav-rokar','nav-staff','nav-vendors'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.style.display='none';
+    });
+  } else if(role==='tagger'){
+    ['nav-schemes','nav-analytics','nav-rates','nav-rokar','nav-staff','nav-vendors'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.style.display='none';
+    });
+    document.querySelectorAll('.nav-it[data-route="s-billing"],.nav-it[data-route="s-customers"]')
+      .forEach(e=>e.style.display='none');
+  } else if(role==='accountant'){
+    document.querySelectorAll('.nav-it[data-route="s-inventory"],.nav-it[data-route="s-billing"],.nav-it[data-route="s-scanner"],.nav-it[data-route="s-customers"],.nav-it[data-route="s-staff"],.nav-it[data-route="s-vendors"]')
+      .forEach(e=>e.style.display='none');
+  } else if(role==='manager'){
+    ['nav-staff','nav-vendors'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.style.display='flex';
+    });
+  }
+  // Only owner sees staff + vendors nav (manager via special case above)
+  if(role!=='owner'&&role!=='manager'){
+    ['nav-staff','nav-vendors'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.style.display='none';
+    });
+  }
+}
+
+/* ── LOGIN ─────────────────────────────────────── */
+function togglePwd(){
+  const i=document.getElementById('inp-pwd');
+  i.type=i.type==='password'?'text':'password';
+}
+
+function doLogin(){
+  const phone = document.getElementById('inp-phone').value.trim();
+  const pwd = document.getElementById('inp-pwd').value;
+  const err = document.getElementById('login-err');
+  err.textContent='';
+  if(!phone||phone.length<10){err.textContent='Enter a valid 10-digit phone number';return;}
+  if(pwd!=='demo'){err.textContent='Incorrect password. Use "demo"';return;}
+  currentRole = document.getElementById('sel-role').value;
+  applyRoleNav(currentRole);
+  goTo('s-dashboard');
+}
+
+/* ── DASHBOARD ─────────────────────────────────── */
+function setPeriod(p,el){
+  dashPeriod=p;
+  document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  renderDash();
+}
+
+function refreshDash(){showToast('Dashboard refreshed','ok');renderDash();}
+
+function fmt(n){return Number(n).toLocaleString('en-IN');}
+
+function renderDash(){
+  const d=DASH_DATA[dashPeriod];
+  const isOwner=currentRole==='owner'||currentRole==='manager';
+  const activity=[
+    {dot:'#43A047',desc:'Pakka Bill BILL-2026-025 – Anita Sharma · ₹52,700',time:'10 min ago'},
+    {dot:'#1565C0',desc:'Kacha Bill BILL-2026-024 – Walk-in · ₹19,200',time:'32 min ago'},
+    {dot:'#D4AF37',desc:'Ornament TAG-006 added to inventory',time:'1 hr ago'},
+    {dot:'#E65100',desc:'Rates updated – 22K Gold ₹6,200/g',time:'2 hr ago'},
+    {dot:'#43A047',desc:'Pakka Bill BILL-2026-023 – Rajesh Kumar · ₹2,64,000',time:'3 hr ago'},
+  ];
+  document.getElementById('dash-content').innerHTML=`
+    <!-- Quick Actions -->
+    <div style="padding:12px 12px 0;font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;">Quick Actions</div>
+    <div class="quick-acts">
+      <button class="qa" onclick="goTo('s-billing')"><span class="qi">🧾</span><span class="ql">New Bill</span></button>
+      <button class="qa" onclick="goTo('s-scanner')"><span class="qi">📷</span><span class="ql">Scan Tag</span></button>
+      <button class="qa" onclick="goTo('s-add-ornament')"><span class="qi">💍</span><span class="ql">Add Item</span></button>
+      <button class="qa" onclick="goTo('s-add-customer')"><span class="qi">👤</span><span class="ql">Add Customer</span></button>
+      ${isOwner?`<button class="qa" onclick="openModal('add-rokar-modal')"><span class="qi">💵</span><span class="ql">Cash Entry</span></button>`:''}
+      ${isOwner?`<button class="qa" onclick="goTo('s-staff')"><span class="qi">🪪</span><span class="ql">Staff</span></button>`:''}
+      ${isOwner?`<button class="qa" onclick="goTo('s-vendors')"><span class="qi">🏪</span><span class="ql">Vendors</span></button>`:''}
+      ${isOwner?`<button class="qa" onclick="showUpdateRateDialog()"><span class="qi">💎</span><span class="ql">Update Rates</span></button>`:''}
+    </div>
+    <!-- Revenue -->
+    <div class="metric-card">
+      <div class="m-icon" style="background:rgba(212,175,55,.15)">💰</div>
+      <div style="flex:1"><div class="m-lbl">Total Revenue</div><div class="m-val">₹${fmt(d.revenue)}</div></div>
+      <div style="font-size:20px;color:#43A047">↑</div>
+    </div>
+    <div class="two-col">
+      <div class="metric-card">
+        <div class="m-icon" style="background:rgba(67,160,71,.15)">🧾</div>
+        <div class="m-lbl">Pakka</div>
+        <div class="m-val" style="color:#43A047;font-size:15px">₹${fmt(d.pakka_amount)}</div>
+        <div class="m-sub">${d.pakka_count} bills</div>
+      </div>
+      <div class="metric-card">
+        <div class="m-icon" style="background:rgba(21,101,192,.15)">📋</div>
+        <div class="m-lbl">Kacha</div>
+        <div class="m-val" style="color:#1565C0;font-size:15px">₹${fmt(d.kacha_amount)}</div>
+        <div class="m-sub">${d.kacha_count} bills</div>
+      </div>
+    </div>
+    ${isOwner?`
+    <div class="metric-card">
+      <div class="m-icon" style="background:rgba(255,152,0,.15)">🏦</div>
+      <div><div class="m-lbl">GST Collected</div><div class="m-val" style="color:#E65100">₹${fmt(d.gst)}</div></div>
+    </div>`:''}
+    <div class="metric-card">
+      <div class="m-icon" style="background:rgba(245,197,24,.15)">💎</div>
+      <div><div class="m-lbl">Gold Stock</div><div class="m-val" style="color:#B8860B">${d.gold_stock.toFixed(2)} g</div></div>
+    </div>
+    <!-- Inventory Status -->
+    <div class="inv-card">
+      <h3>Inventory Status</h3>
+      <div class="inv-row"><span>In Stock</span><span class="chip" style="background:#e8f5e9;color:#2e7d32">${d.inv.in_stock}</span></div>
+      <div class="inv-row"><span>Sold (${dashPeriod})</span><span class="chip">${d.inv.sold}</span></div>
+      <div class="inv-row"><span>Reserved</span><span class="chip" style="background:#fff3e0;color:#E65100">${d.inv.reserved}</span></div>
+      <div class="inv-row"><span>Returned</span><span class="chip">${d.inv.returned}</span></div>
+      <div style="margin-top:10px"><button onclick="goTo('s-inventory')" style="width:100%;height:36px;background:transparent;border:1.5px solid var(--gold);border-radius:8px;color:var(--gold);font-size:12px;cursor:pointer;font-weight:600;">View All Inventory →</button></div>
+    </div>
+    <!-- Recent Activity -->
+    <div class="sec-hdr">Recent Activity <span class="see-all" onclick="goTo('s-rokar')">See All →</span></div>
+    <div style="background:#fff;border-radius:var(--r);margin:0 12px 12px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden;">
+      ${activity.map(a=>`
+        <div class="act-item">
+          <div class="act-dot" style="background:${a.dot}"></div>
+          <div class="act-desc">${a.desc}</div>
+          <div class="act-time">${a.time}</div>
+        </div>`).join('')}
+    </div>
+  `;
+}
+
+/* ── INVENTORY ─────────────────────────────────── */
+function setInvFilter(f,el){
+  invFilter=f;
+  document.querySelectorAll('.fc').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  renderInventory();
+}
+
+function renderInventory(){
+  const q=(document.getElementById('inv-search')||{}).value||'';
+  let items=ORNAMENTS.filter(o=>{
+    if(invFilter==='all') return true;
+    if(invFilter==='in_stock') return o.status==='in_stock';
+    if(invFilter==='sold') return o.status==='sold';
+    if(invFilter==='reserved') return o.status==='reserved';
+    return o.metal_type===invFilter;
+  }).filter(o=>!q||o.name.toLowerCase().includes(q.toLowerCase())||o.tag_code.toLowerCase().includes(q.toLowerCase()));
+
+  const statusStyle={in_stock:'badge-g',sold:'badge-grey',reserved:'background:#fff3e0;color:#E65100;'};
+  const statusLabel={in_stock:'In Stock',sold:'Sold',reserved:'Reserved 📌'};
+
+  document.getElementById('inv-list').innerHTML = items.length===0
+    ? '<div style="text-align:center;padding:40px;color:#bbb">No ornaments found</div>'
+    : items.map(o=>`
+    <div class="orn-card" onclick="openOrnament('${o.id}')">
+      <div class="orn-icon">${o.icon}</div>
+      <div class="orn-info">
+        <div class="orn-name">${o.name}</div>
+        <div class="orn-sub">${o.tag_code} · ${o.gross_weight}g · ${o.category}</div>
+        <div style="margin-top:4px"><span class="badge ${o.status==='reserved'?'':statusStyle[o.status]||'badge-grey'}" ${o.status==='reserved'?'style="background:#fff3e0;color:#E65100;"':''}>${statusLabel[o.status]||o.status}</span></div>
+      </div>
+      <div class="orn-price">₹${fmt(o.price)}</div>
+    </div>`).join('');
+}
+
+function openOrnament(id){
+  const o=ORNAMENTS.find(x=>x.id===id);
+  if(!o) return;
+  const rate = RATES[o.metal_type]||RATES.gold_22k;
+  const goldVal = o.net_weight * rate;
+  const making = o.making_charge_type==='percent'
+    ? o.making_charge_value/100*rate*o.net_weight
+    : o.making_charge_value * o.net_weight;
+  const stone = o.stone_weight * o.stone_rate;
+  const subtotal = goldVal + making + stone + o.hallmark_charge + o.other_charges;
+  const gst = subtotal*0.03;
+  const pakka = subtotal+gst;
+
+  document.getElementById('orn-detail-body').innerHTML=`
+    <div class="tag-box">
+      <div class="tag-code">${o.tag_code}</div>
+      <div class="qr-box">▦</div>
+      <div style="font-size:12px;color:#aaa">QR code for jewellery tag</div>
+    </div>
+    <div class="det-card" style="margin:0 12px 10px">
+      <h3>Item Info</h3>
+      <div class="det-row"><span>Name</span><span>${o.name}</span></div>
+      <div class="det-row"><span>Metal</span><span>${metalLabel(o.metal_type)}</span></div>
+      <div class="det-row"><span>Category</span><span>${o.category}</span></div>
+      <div class="det-row"><span>Status</span><span style="color:${o.status==='in_stock'?'#43A047':'#888'}">${o.status==='in_stock'?'In Stock':'Sold'}</span></div>
+    </div>
+    <div class="det-card" style="margin:0 12px 10px">
+      <h3>Weights</h3>
+      <div class="det-row"><span>Gross Weight</span><span>${o.gross_weight}g</span></div>
+      <div class="det-row"><span>Net Weight</span><span>${o.net_weight}g</span></div>
+      ${o.stone_weight>0?`<div class="det-row"><span>Stone Weight</span><span>${o.stone_weight}g</span></div>`:''}
+    </div>
+    <div class="det-card" style="margin:0 12px 10px">
+      <h3>Live Price Estimate @ ₹${rate}/g</h3>
+      <div class="det-row"><span>Gold Value</span><span>₹${goldVal.toFixed(2)}</span></div>
+      <div class="det-row"><span>Making Charge</span><span>₹${making.toFixed(2)}</span></div>
+      ${stone>0?`<div class="det-row"><span>Stone Value</span><span>₹${stone.toFixed(2)}</span></div>`:''}
+      ${o.hallmark_charge>0?`<div class="det-row"><span>Hallmark</span><span>₹${o.hallmark_charge.toFixed(2)}</span></div>`:''}
+      ${o.other_charges>0?`<div class="det-row"><span>Other</span><span>₹${o.other_charges.toFixed(2)}</span></div>`:''}
+      <div class="det-row"><span>Subtotal</span><span>₹${subtotal.toFixed(2)}</span></div>
+      <div class="det-row" style="color:#E65100"><span>GST (3%)</span><span>₹${gst.toFixed(2)}</span></div>
+      <div class="price-total"><span>Pakka Total</span><span style="color:var(--gold)">₹${pakka.toFixed(2)}</span></div>
+    </div>
+    ${o.status==='in_stock'?`
+    <div style="display:flex;gap:8px;margin:0 12px 12px;">
+      <button class="btn-gold" style="flex:2;height:44px;" onclick="addToCartFromDetail('${o.id}')">🧾 Add to Bill</button>
+      <button style="flex:1;height:44px;background:#fff3e0;color:#E65100;border:none;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;" onclick="markOrnament('${o.id}','reserved')">📌 Reserve</button>
+      <button style="flex:1;height:44px;background:#ffebee;color:#E53935;border:none;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;" onclick="markOrnament('${o.id}','sold')">✅ Sold</button>
+    </div>`
+    :o.status==='reserved'?`
+    <div style="display:flex;gap:8px;margin:0 12px 12px;">
+      <button style="flex:1;height:44px;background:#e8f5e9;color:#2e7d32;border:none;border-radius:10px;font-size:13px;cursor:pointer;" onclick="markOrnament('${o.id}','in_stock')">↩ Unreserve</button>
+      <button class="btn-gold" style="flex:1;height:44px;" onclick="addToCartFromDetail('${o.id}')">🧾 Add to Bill</button>
+    </div>`
+    :`<div style="margin:0 12px 12px;background:#f5f5f5;border-radius:10px;padding:10px;text-align:center;font-size:12px;color:#888;">This item has been sold</div>`}
+  `;
+  goTo('s-ornament-detail');
+}
+
+function metalLabel(t){
+  return {gold_22k:'22K Gold',gold_18k:'18K Gold',gold_24k:'24K Gold',gold_14k:'14K Gold',silver:'Silver',silver_925:'Sterling 925'}[t]||t;
+}
+
+function addToCartFromDetail(id){
+  const o=ORNAMENTS.find(x=>x.id===id);
+  pakkaCart.push(o);
+  updatePakkaCart();
+  showToast(`${o.name} added to Pakka bill`,'ok');
+  goTo('s-pakka');
+}
+
+function markOrnament(id,status){
+  const o=ORNAMENTS.find(x=>x.id===id);
+  if(!o) return;
+  const prev=o.status;
+  o.status=status;
+  const labels={in_stock:'In Stock',reserved:'Reserved',sold:'Sold'};
+  showToast(`${o.name} marked as ${labels[status]}`,'ok');
+  openOrnament(id);
+}
+
+/* ── ADD ORNAMENT ─────────────────────────────── */
+function updateMakingLabel(){
+  const t=document.getElementById('ao-making-type').value;
+  document.getElementById('making-lbl').textContent=t==='percent'?'Making % *':'Making Rate (₹/g) *';
+}
+
+function calcLivePrice(){
+  const metal=document.getElementById('ao-metal')?document.getElementById('ao-metal').value:'gold_22k';
+  const net=parseFloat(document.getElementById('ao-net')?.value)||0;
+  const stoneWt=parseFloat(document.getElementById('ao-stone-wt')?.value)||0;
+  const stoneRate=parseFloat(document.getElementById('ao-stone-rate')?.value)||0;
+  const makingType=document.getElementById('ao-making-type')?.value||'per_gram';
+  const makingVal=parseFloat(document.getElementById('ao-making')?.value)||0;
+  const hallmark=parseFloat(document.getElementById('ao-hallmark')?.value)||45;
+  const other=parseFloat(document.getElementById('ao-other')?.value)||0;
+
+  const rate=RATES[metal]||RATES.gold_22k;
+  const goldVal=net*rate;
+  const making=makingType==='percent'?makingVal/100*goldVal:makingVal*net;
+  const stone=stoneWt*stoneRate;
+  const subtotal=goldVal+making+stone+hallmark+other;
+  const gst=subtotal*0.03;
+  const total=subtotal+gst;
+
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent='₹'+v.toFixed(2);};
+  set('prev-gold',goldVal);set('prev-making',making);set('prev-stone',stone);
+  set('prev-extra',hallmark+other);set('prev-gst',gst);set('prev-total',total);
+}
+
+function saveOrnament(){
+  const name=document.getElementById('ao-name')?.value.trim();
+  const gross=document.getElementById('ao-gross')?.value;
+  const net=document.getElementById('ao-net')?.value;
+  if(!name){showToast('Enter item name','err');return;}
+  if(!gross||!net){showToast('Enter weight values','err');return;}
+  const tag='TAG-'+String(Math.floor(Math.random()*9000+1000));
+  showToast(`✅ Ornament saved! Tag: ${tag}`,'ok');
+  setTimeout(()=>goTo('s-inventory'),900);
+}
+
+/* ── PAKKA BILL ─────────────────────────────────── */
+let pakkaPayMode = 'upi';
+function setPay(type,mode,el){
+  if(type==='pakka') pakkaPayMode=mode;
+  el.closest('.pay-sel').querySelectorAll('.pay-opt').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function addCartItemPakka(){
+  const avail = ORNAMENTS.filter(o=>o.status==='in_stock'&&!pakkaCart.find(c=>c.id===o.id));
+  if(!avail.length){showToast('No more in-stock items','err');return;}
+  const item = avail[Math.floor(Math.random()*avail.length)];
+  pakkaCart.push(item);
+  updatePakkaCart();
+  showToast(`${item.icon} ${item.name} added`,'ok');
+}
+
+function addCartItemKacha(){
+  const avail = ORNAMENTS.filter(o=>o.status==='in_stock'&&!kachaCart.find(c=>c.id===o.id));
+  if(!avail.length){showToast('No more in-stock items','err');return;}
+  const item = avail[Math.floor(Math.random()*avail.length)];
+  kachaCart.push(item);
+  updateKachaCart();
+  showToast(`${item.icon} ${item.name} added`,'ok');
+}
+
+function removeFromCart(type,id){
+  if(type==='pakka'){pakkaCart=pakkaCart.filter(i=>i.id!==id);updatePakkaCart();}
+  else{kachaCart=kachaCart.filter(i=>i.id!==id);updateKachaCart();}
+}
+
+function updatePakkaCart(){
+  const subtotal=pakkaCart.reduce((s,i)=>s+i.price,0);
+  const gst=subtotal*0.03;
+  const total=subtotal+gst;
+  document.getElementById('pakka-sub').textContent='₹'+fmt(subtotal.toFixed(2));
+  document.getElementById('pakka-gst').textContent='₹'+fmt(gst.toFixed(2));
+  document.getElementById('pakka-total').textContent='₹'+fmt(total.toFixed(2));
+  document.getElementById('pakka-cart').innerHTML = pakkaCart.length===0
+    ? '<div class="cart-empty">🛒<br>No items. Add or scan tags.</div>'
+    : pakkaCart.map(i=>`
+      <div class="cart-item">
+        <span style="font-size:20px">${i.icon}</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600">${i.name}</div><div style="font-size:11px;color:#aaa">${i.tag_code} · ${i.gross_weight}g</div></div>
+        <div style="font-size:13px;font-weight:700;color:var(--gold)">₹${fmt(i.price)}</div>
+        <span class="rm" onclick="removeFromCart('pakka','${i.id}')">✕</span>
+      </div>`).join('');
+}
+
+let oldGoldCredit=0;
+function calcOldGold(){
+  const metal=document.getElementById('og-metal')?.value||'gold_22k';
+  const wt=parseFloat(document.getElementById('og-weight')?.value)||0;
+  const purity=parseFloat(document.getElementById('og-purity')?.value)||100;
+  const rate=RATES[metal]||RATES.gold_22k;
+  oldGoldCredit=wt*(purity/100)*rate;
+  const el=document.getElementById('og-credit-display');
+  if(el) el.textContent=`Old gold credit: ₹${oldGoldCredit.toFixed(2)}`;
+  updateKachaCart();
+}
+
+function updateKachaCart(){
+  const subtotal=kachaCart.reduce((s,i)=>s+i.price,0);
+  const net=Math.max(0,subtotal-oldGoldCredit);
+  const subEl=document.getElementById('kacha-sub');
+  const ogEl=document.getElementById('kacha-og');
+  const totEl=document.getElementById('kacha-total');
+  if(subEl) subEl.textContent='₹'+fmt(subtotal.toFixed(2));
+  if(ogEl) ogEl.textContent='−₹'+fmt(oldGoldCredit.toFixed(2));
+  if(totEl) totEl.textContent='₹'+fmt(net.toFixed(2));
+  const cartEl=document.getElementById('kacha-cart');
+  if(!cartEl) return;
+  cartEl.innerHTML = kachaCart.length===0
+    ? '<div class="cart-empty">🛒<br>No items. Add items to start.</div>'
+    : kachaCart.map(i=>`
+      <div class="cart-item">
+        <span style="font-size:20px">${i.icon}</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600">${i.name}</div><div style="font-size:11px;color:#aaa">${i.tag_code} · ${i.gross_weight}g</div></div>
+        <div style="font-size:13px;font-weight:700;color:var(--gold)">₹${fmt(i.price)}</div>
+        <span class="rm" onclick="removeFromCart('kacha','${i.id}')">✕</span>
+      </div>`).join('');
+}
+
+function selectCustomer(type){
+  // populate picker
+  document.getElementById('cust-picker-list').innerHTML = CUSTOMERS.map(c=>`
+    <div class="modal-item" onclick="pickCustomer('${type}','${c.id}')">
+      <div class="avatar" style="width:36px;height:36px;font-size:14px">${c.name[0]}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${c.name}</div>
+        <div style="font-size:11px;color:#888">${c.phone}</div>
+      </div>
+      ${c.kyc_status!=='none'?'<span style="color:#43A047">✅</span>':''}
+    </div>`).join('');
+  openModal('cust-picker-modal');
+}
+
+function pickCustomer(type,id){
+  const c=CUSTOMERS.find(x=>x.id===id);
+  closeModal('cust-picker-modal');
+  const tile=document.getElementById(`${type}-cust-tile`);
+  if(tile) tile.innerHTML=`
+    <div class="avatar" style="width:36px;height:36px;font-size:14px">${c.name[0]}</div>
+    <div class="info"><div style="font-size:13px;font-weight:600">${c.name}</div><div style="font-size:11px;color:#888">${c.phone}</div></div>
+    <div style="color:#43A047">✅</div>`;
+  if(type==='pakka') pakkaCustomer=c;
+  else kachaCustomer=c;
+}
+
+function generateBill(type){
+  const cart = type==='pakka'?pakkaCart:kachaCart;
+  const cust = type==='pakka'?pakkaCustomer:kachaCustomer;
+  if(type==='pakka'&&!cust){showToast('Please select a customer','err');return;}
+  if(!cart.length){showToast('Cart is empty – add items first','err');return;}
+  const subtotal=cart.reduce((s,i)=>s+i.price,0);
+  const total=type==='pakka'?subtotal*1.03:Math.max(0,subtotal-oldGoldCredit);
+  billCount++;
+  document.getElementById('suc-bill-no').textContent=`BILL-2026-${String(billCount).padStart(3,'0')}`;
+  document.getElementById('suc-amount').textContent=`Total: ₹${fmt(total.toFixed(2))}`;
+  document.getElementById('suc-type').textContent=type==='pakka'?'Pakka Bill (with GST)':'Kacha Bill (Cash)';
+  if(cust) document.getElementById('suc-cust').textContent=`Customer: ${cust.name}`;
+  else document.getElementById('suc-cust').textContent='Walk-in customer';
+  if(type==='pakka'){pakkaCart=[];pakkaCustomer=null;updatePakkaCart();
+    const tile=document.getElementById('pakka-cust-tile');
+    if(tile) tile.innerHTML=`<div style="font-size:22px">👤</div><div class="info"><div style="font-size:13px;color:#888">Tap to select customer *</div></div><div style="color:#ccc">›</div>`;
+  } else {
+    kachaCart=[];kachaCustomer=null;oldGoldCredit=0;updateKachaCart();
+    const tile=document.getElementById('kacha-cust-tile');
+    if(tile) tile.innerHTML=`<div style="font-size:22px">👤</div><div class="info"><div style="font-size:13px;color:#888">Tap to select customer</div></div><div style="color:#ccc">›</div>`;
+    const ogW=document.getElementById('og-weight');const ogC=document.getElementById('og-credit-display');
+    if(ogW) ogW.value='';if(ogC) ogC.textContent='Old gold credit: ₹0.00';
+  }
+  goTo('s-success');
+}
+
+/* ── SCANNER ────────────────────────────────────── */
+let torchOn=false;
+let lastScannedId=null;
+function toggleTorch(){
+  torchOn=!torchOn;
+  document.getElementById('torch-btn').textContent=torchOn?'🔆':'🔦';
+  showToast(torchOn?'Torch ON':'Torch OFF','ok');
+}
+
+function simulateScan(){
+  const avail=ORNAMENTS.filter(o=>o.status==='in_stock');
+  const o=avail[Math.floor(Math.random()*avail.length)];
+  lastScannedId=o.id;
+  addRecentScan(o);
+  document.getElementById('scan-result-body').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 0;">
+      <div style="font-size:36px">${o.icon}</div>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--dark)">${o.name}</div>
+        <div style="font-family:monospace;color:var(--gold);font-size:14px;margin-top:2px">${o.tag_code}</div>
+        <div style="font-size:12px;color:#888;margin-top:2px">${o.gross_weight}g · ${metalLabel(o.metal_type)} · ${o.category}</div>
+      </div>
+    </div>
+    <div style="background:#f5f5f5;border-radius:8px;padding:8px 12px;margin-top:6px;font-size:13px;">
+      <span style="color:#888">Price: </span><strong style="color:var(--gold)">₹${fmt(o.price)}</strong>
+      &nbsp;·&nbsp;<span class="badge ${o.status==='in_stock'?'badge-g':'badge-grey'}">${o.status==='in_stock'?'In Stock':'Sold'}</span>
+    </div>`;
+  openModal('scan-result-modal');
+}
+
+function manualScan(){
+  const code=document.getElementById('manual-tag').value.trim().toUpperCase();
+  if(!code){showToast('Enter a tag code','err');return;}
+  const o=ORNAMENTS.find(x=>x.tag_code===code);
+  if(!o){showToast(`Tag "${code}" not found`,'err');return;}
+  lastScannedId=o.id;
+  addRecentScan(o);
+  document.getElementById('manual-tag').value='';
+  openOrnament(o.id);
+}
+
+function addRecentScan(o){
+  recentScans.unshift(o);
+  if(recentScans.length>5) recentScans.pop();
+  const el=document.getElementById('recent-scans');
+  if(!el) return;
+  el.innerHTML=recentScans.map(s=>`
+    <div onclick="openOrnament('${s.id}')" style="flex-shrink:0;background:#f5f5f5;border-radius:8px;
+      padding:4px 10px;font-size:11px;cursor:pointer;white-space:nowrap;color:#555;">
+      ${s.icon} ${s.tag_code}
+    </div>`).join('');
+}
+
+function viewScannedOrnament(){
+  closeModal('scan-result-modal');
+  if(lastScannedId) openOrnament(lastScannedId);
+}
+
+function resumeScan(){lastScannedId=null;}
+
+/* ── CUSTOMERS ─────────────────────────────────── */
+function renderCustomers(){
+  const q=(document.getElementById('cust-search')||{}).value||'';
+  const filtered=CUSTOMERS.filter(c=>!q||c.name.toLowerCase().includes(q.toLowerCase())||c.phone.includes(q));
+  document.getElementById('cust-list').innerHTML=filtered.map(c=>`
+    <div class="list-tile" onclick="openCustomer('${c.id}')">
+      <div class="avatar">${c.name[0]}</div>
+      <div style="flex:1">
+        <div class="t-title">${c.name}</div>
+        <div class="t-sub">${c.phone} · ${c.city}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        ${c.kyc_status!=='none'?'<span style="color:#43A047;font-size:16px">✅</span>':'<span style="font-size:11px;color:#bbb">No KYC</span>'}
+        ${c.balance>0?`<span style="font-size:11px;color:#E65100">Due ₹${fmt(c.balance)}</span>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function openCustomer(id){
+  const c=CUSTOMERS.find(x=>x.id===id);
+  currentViewedCustomer=c;
+  document.getElementById('cust-detail-body').innerHTML=`
+    <div class="cust-header">
+      <div class="cust-av">${c.name[0]}</div>
+      <div>
+        <div class="cust-name">${c.name}</div>
+        <div class="cust-phone">${c.phone}</div>
+        ${c.kyc_status!=='none'
+          ?'<span class="kyc-chip">KYC Verified ✅</span>'
+          :'<span class="kyc-chip" style="color:#ffcc80;background:rgba(255,152,0,.2)">KYC Pending ⚠️</span>'}
+      </div>
+    </div>
+    <div class="det-card" style="margin:12px">
+      <h3>Contact Info</h3>
+      <div class="det-row"><span>Phone</span><span>${c.phone}</span></div>
+      <div class="det-row"><span>Address</span><span style="font-size:12px;text-align:right">${c.address}</span></div>
+      <div class="det-row"><span>City</span><span>${c.city}</span></div>
+      ${c.balance>0?`<div class="det-row"><span>Outstanding</span><span style="color:#E65100;font-weight:700">₹${fmt(c.balance)}</span></div>`:''}
+    </div>
+    <div class="det-card" style="margin:0 12px 10px">
+      <h3>Bill History <span style="color:#bbb;font-weight:400">(${c.bills.length})</span></h3>
+      ${c.bills.length===0
+        ?'<div style="color:#bbb;font-size:13px;padding:8px 0;text-align:center">No bills yet</div>'
+        :c.bills.map(b=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:13px;">
+            <div>
+              <div style="font-weight:600;font-family:monospace;font-size:12px;color:var(--gold)">${b.no}</div>
+              <div style="color:#aaa;font-size:11px">${b.date} · ${b.type==='pakka'?'Pakka':'Kacha'}</div>
+            </div>
+            <div style="font-weight:700;">₹${fmt(b.amount)}</div>
+          </div>`).join('')}
+    </div>
+    <div class="det-card" style="margin:0 12px 10px">
+      <h3>Active Schemes <span style="color:#bbb;font-weight:400">(${c.schemes.length})</span></h3>
+      ${c.schemes.length===0
+        ?'<div style="color:#bbb;font-size:13px;padding:8px 0;text-align:center">Not enrolled in any scheme</div>'
+        :c.schemes.map(s=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f5f5f5;">
+            <span style="font-size:20px">💰</span>
+            <div style="flex:1;font-size:13px;font-weight:600">${s}</div>
+            <span style="font-size:11px;color:#43A047">Active</span>
+          </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:10px;padding:0 12px 20px;">
+      <button onclick="goTo('s-billing')" style="flex:1;height:44px;background:var(--gold);color:var(--dark);border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">🧾 New Bill</button>
+      <button onclick="showToast('SMS sent to ${c.name}','ok')" style="flex:1;height:44px;background:#f5f5f5;color:#333;border:none;border-radius:10px;font-size:13px;cursor:pointer;">📱 Send SMS</button>
+    </div>
+  `;
+  goTo('s-customer-detail');
+}
+
+function saveCustomer(){
+  const name=document.getElementById('ac-name')?.value.trim();
+  const phone=document.getElementById('ac-phone')?.value.trim();
+  if(!name){showToast('Enter customer name','err');return;}
+  if(!phone||phone.length!==10){showToast('Enter valid 10-digit phone','err');return;}
+  showToast(`✅ Customer "${name}" saved`,'ok');
+  setTimeout(()=>goTo('s-customers'),900);
+}
+
+/* ── RATES ─────────────────────────────────────── */
+function renderRates(){
+  document.getElementById('rates-body').innerHTML=`
+    <div style="padding:8px 0">
+    ${RATES.is_stale?`<div class="stale-banner">⚠️ Rates are stale! Please update today's rates.</div>`:''}
+    <div style="font-size:12px;color:#999;padding:2px 12px 8px">Session: ${RATES.session.toUpperCase()} · ${RATES.rate_date}</div>
+    <div class="sec-title">Gold Rates (per gram)</div>
+    ${rateCard('22',RATES.gold_22k,'22K Gold','#B8860B','rgba(255,193,7,.2)')}
+    ${rateCard('24',RATES.gold_24k,'24K Gold','#8B4513','rgba(180,100,0,.2)')}
+    ${rateCard('18',RATES.gold_18k,'18K Gold','#DAA520','rgba(218,165,32,.2)')}
+    ${rateCard('14',RATES.gold_14k,'14K Gold','#B8A000','rgba(184,160,0,.2)')}
+    <div class="sec-title">Silver Rates (per gram)</div>
+    ${rateCard('Ag',RATES.silver,'Silver','#555','rgba(100,100,100,.15)')}
+    ${rateCard('925',RATES.silver_925,'Sterling 925','#777','rgba(150,150,150,.15)')}
+    <div style="margin:16px 12px;padding:12px;background:#f5f5f5;border-radius:10px;font-size:12px;color:#888;text-align:center;">
+      Rates updated by owner/manager only · Next update: Evening session
+    </div>
+    </div>`;
+}
+
+function rateCard(abbr,rate,label,color,bg){
+  return `<div class="rate-card">
+    <div class="rate-av" style="background:${bg};color:${color}">${abbr}</div>
+    <span class="rate-lbl">${label}</span>
+    <span class="rate-val" style="color:${color}">₹${rate}/g</span>
+  </div>`;
+}
+
+function showUpdateRateDialog(){
+  if(currentRole!=='owner'&&currentRole!=='manager'){
+    showToast('Only owners/managers can update rates','err');return;
+  }
+  openModal('rate-update-modal');
+}
+
+function saveRates(){
+  RATES.gold_22k=parseFloat(document.getElementById('ru-22k').value)||RATES.gold_22k;
+  RATES.gold_24k=parseFloat(document.getElementById('ru-24k').value)||RATES.gold_24k;
+  RATES.gold_18k=parseFloat(document.getElementById('ru-18k').value)||RATES.gold_18k;
+  RATES.gold_14k=parseFloat(document.getElementById('ru-14k').value)||RATES.gold_14k;
+  RATES.silver=parseFloat(document.getElementById('ru-silver').value)||RATES.silver;
+  RATES.silver_925=parseFloat(document.getElementById('ru-925').value)||RATES.silver_925;
+  RATES.session=document.getElementById('ru-session').value;
+  RATES.is_stale=false;
+  closeModal('rate-update-modal');
+  renderRates();
+  showToast('✅ Metal rates updated successfully','ok');
+}
+
+/* ── ANALYTICS ─────────────────────────────────── */
+const CAT_DATA = {
+  today:{Ring:4,Necklace:3,Earrings:2,Bangle:2,Bracelet:1,Chain:1,Pendant:1},
+  week:{Ring:28,Necklace:18,Earrings:15,Bangle:10,Bracelet:8,Chain:7,Pendant:6,Mangalsutra:4,Anklet:3},
+  month:{Ring:105,Necklace:72,Earrings:58,Bangle:40,Bracelet:32,Chain:28,Pendant:22,Mangalsutra:18,Anklet:10},
+  year:{Ring:980,Necklace:640,Earrings:520,Bangle:380,Bracelet:290,Chain:250,Pendant:210,Mangalsutra:160,Anklet:80},
+};
+const PAY_DATA = {
+  today:{UPI:52,Cash:28,Card:14,Bank:6},
+  week:{UPI:48,Cash:32,Card:12,Bank:8},
+  month:{UPI:45,Cash:35,Card:13,Bank:7},
+  year:{UPI:42,Cash:38,Card:13,Bank:7},
+};
+
+function renderAnalytics(){
+  const d=DASH_DATA[dashPeriod];
+  const cats=CAT_DATA[dashPeriod];
+  const pays=PAY_DATA[dashPeriod];
+  const total=d.pakka_amount+d.kacha_amount;
+  const pPct=Math.round(d.pakka_amount/total*100);
+  const kPct=100-pPct;
+  const r=70,cx=85,cy=85;
+  const pakkaAngle=pPct/100*2*Math.PI;
+  const x1=cx+r*Math.sin(pakkaAngle), y1=cy-r*Math.cos(pakkaAngle);
+  const lg=pakkaAngle>Math.PI?1:0;
+
+  const maxCat=Math.max(...Object.values(cats));
+  const catBars=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>`
+    <div class="bar-row">
+      <div class="bar-lbl">${k}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(v/maxCat*100).toFixed(0)}%;background:var(--gold);"></div></div>
+      <div class="bar-val">${v} pcs</div>
+    </div>`).join('');
+
+  const payColors={UPI:'#1565C0',Cash:'#43A047',Card:'#7B1FA2',Bank:'#E65100'};
+  const payBars=Object.entries(pays).map(([k,v])=>`
+    <div class="bar-row">
+      <div class="bar-lbl">${k}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${v}%;background:${payColors[k]||'#888'};"></div></div>
+      <div class="bar-val">${v}%</div>
+    </div>`).join('');
+
+  document.getElementById('analytics-body').innerHTML=`
+    <div class="seg-bar" style="margin:12px">
+      <button class="seg-btn ${dashPeriod==='today'?'on':''}" onclick="setAnalPeriod('today',this)">Today</button>
+      <button class="seg-btn ${dashPeriod==='week'?'on':''}" onclick="setAnalPeriod('week',this)">Week</button>
+      <button class="seg-btn ${dashPeriod==='month'?'on':''}" onclick="setAnalPeriod('month',this)">Month</button>
+      <button class="seg-btn ${dashPeriod==='year'?'on':''}" onclick="setAnalPeriod('year',this)">Year</button>
+    </div>
+    <!-- Revenue Split Pie -->
+    <div class="inv-card" style="margin:0 12px 10px">
+      <h3>Revenue Split — Pakka vs Kacha</h3>
+      <div class="pie-wrap">
+        <svg width="170" height="170">
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="#f0f0f0"/>
+          <path d="M${cx},${cy} L${cx},${cy-r} A${r},${r} 0 ${lg},1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" fill="#43A047"/>
+          <path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${1-lg},1 ${cx},${cy-r} Z" fill="#1565C0"/>
+          <text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="11" fill="#555">Total</text>
+          <text x="${cx}" y="${cy+12}" text-anchor="middle" font-size="12" fill="#333" font-weight="700">₹${fmt(total)}</text>
+        </svg>
+      </div>
+      <div class="pie-legend">
+        <span><span class="leg-dot" style="background:#43A047"></span>Pakka ${pPct}%</span>
+        <span><span class="leg-dot" style="background:#1565C0"></span>Kacha ${kPct}%</span>
+      </div>
+    </div>
+    <!-- Revenue Stats -->
+    <div class="stat-card"><div class="s-dot" style="background:#43A047"></div>
+      <div class="s-info"><div class="s-title">Pakka Revenue</div><div class="s-val">₹${fmt(d.pakka_amount)}</div><div class="s-sub">${d.pakka_count} bills · with GST</div></div>
+    </div>
+    <div class="stat-card"><div class="s-dot" style="background:#1565C0"></div>
+      <div class="s-info"><div class="s-title">Kacha Revenue</div><div class="s-val">₹${fmt(d.kacha_amount)}</div><div class="s-sub">${d.kacha_count} bills · no GST</div></div>
+    </div>
+    <div class="stat-card"><div class="s-dot" style="background:#E65100"></div>
+      <div class="s-info"><div class="s-title">GST Collected</div><div class="s-val">₹${fmt(d.gst)}</div><div class="s-sub">From pakka bills only</div></div>
+    </div>
+    <!-- Sales by Category -->
+    <div class="inv-card" style="margin:10px 12px">
+      <h3>Top Categories (Items Sold)</h3>
+      <div style="margin-top:8px">${catBars}</div>
+    </div>
+    <!-- Payment Modes -->
+    <div class="inv-card" style="margin:0 12px 10px">
+      <h3>Payment Mode Breakdown</h3>
+      <div style="margin-top:8px">${payBars}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+        ${Object.entries(payColors).map(([k,c])=>`<span><span class="leg-dot" style="background:${c}"></span> ${k}</span>`).join('')}
+      </div>
+    </div>
+    <!-- Gold Stock -->
+    <div class="stat-card" style="margin-bottom:16px"><div class="s-dot" style="background:var(--gold)"></div>
+      <div class="s-info"><div class="s-title">Gold Stock in Inventory</div><div class="s-val">${d.gold_stock.toFixed(2)}g</div><div class="s-sub">Across all categories</div></div>
+    </div>
+  `;
+}
+
+function setAnalPeriod(p,el){
+  dashPeriod=p;
+  document.querySelectorAll('#analytics-body .seg-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  renderAnalytics();
+}
+
+/* ── ROKAR ─────────────────────────────────────── */
+function renderRokar(){
+  document.getElementById('rokar-body').innerHTML=`
+    <div class="cash-summary">
+      <div class="cash-stat"><div class="cs-lbl">Cash In</div><div class="cs-val" style="color:#43A047">₹${fmt(ROKAR.total_cash_in)}</div></div>
+      <div class="cash-stat"><div class="cs-lbl">Cash Out</div><div class="cs-val" style="color:#E53935">₹${fmt(ROKAR.total_cash_out)}</div></div>
+      <div class="cash-stat"><div class="cs-lbl">Net Cash</div><div class="cs-val" style="color:#1565C0">₹${fmt(ROKAR.net_cash)}</div></div>
+    </div>
+    <div style="padding:6px 12px 4px;display:flex;gap:8px;">
+      <button onclick="filterRokar('all',this)" class="fc on" id="rk-all">All</button>
+      <button onclick="filterRokar('cash_in',this)" class="fc" id="rk-in">Cash In</button>
+      <button onclick="filterRokar('cash_out',this)" class="fc" id="rk-out">Cash Out</button>
+    </div>
+    <div id="rokar-entries">
+      ${ROKAR.entries.map(e=>{
+        const isIn=e.entry_type==='cash_in';
+        return `<div class="entry-tile">
+          <div class="entry-arrow ${isIn?'arrow-in':'arrow-out'}">${isIn?'↓':'↑'}</div>
+          <div class="e-info"><div class="e-title">${e.description}</div><div class="e-date">${e.entry_date}</div></div>
+          <div class="e-amount" style="color:${isIn?'#43A047':'#E53935'}">${isIn?'+':'-'}₹${fmt(e.amount)}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function filterRokar(type,el){
+  document.querySelectorAll('#rokar-body .fc').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  const entries=type==='all'?ROKAR.entries:ROKAR.entries.filter(e=>e.entry_type===type);
+  document.getElementById('rokar-entries').innerHTML=entries.map(e=>{
+    const isIn=e.entry_type==='cash_in';
+    return `<div class="entry-tile">
+      <div class="entry-arrow ${isIn?'arrow-in':'arrow-out'}">${isIn?'↓':'↑'}</div>
+      <div class="e-info"><div class="e-title">${e.description}</div><div class="e-date">${e.entry_date}</div></div>
+      <div class="e-amount" style="color:${isIn?'#43A047':'#E53935'}">${isIn?'+':'-'}₹${fmt(e.amount)}</div>
+    </div>`;
+  }).join('');
+}
+
+function saveRokarEntry(){
+  const desc=document.getElementById('re-desc')?.value.trim();
+  const type=document.getElementById('re-type')?.value;
+  const amount=parseFloat(document.getElementById('re-amount')?.value)||0;
+  if(!desc){showToast('Enter a description','err');return;}
+  if(!amount||amount<=0){showToast('Enter a valid amount','err');return;}
+  ROKAR.entries.unshift({description:desc,entry_type:type,amount,entry_date:'09 May 2026'});
+  if(type==='cash_in'){ROKAR.total_cash_in+=amount;ROKAR.net_cash+=amount;}
+  else{ROKAR.total_cash_out+=amount;ROKAR.net_cash-=amount;}
+  document.getElementById('re-desc').value='';
+  document.getElementById('re-amount').value='';
+  if(document.getElementById('re-notes')) document.getElementById('re-notes').value='';
+  closeModal('add-rokar-modal');
+  renderRokar();
+  showToast(`✅ Entry added: ${type==='cash_in'?'+':'-'}₹${fmt(amount)}`,'ok');
+}
+
+/* ── STAFF ─────────────────────────────────────── */
+let currentStaff = null;
+
+function roleColor(r){
+  return {owner:'#8B6914',manager:'#1565C0',salesman:'#2e7d32',tagger:'#7B1FA2',accountant:'#BF360C'}[r]||'#888';
+}
+function capitalize(s){return s?s.charAt(0).toUpperCase()+s.slice(1):''}
+
+function renderStaff(){
+  const q=(document.getElementById('staff-search')||{}).value||'';
+  const filtered=STAFF.filter(s=>!q||s.name.toLowerCase().includes(q.toLowerCase())||s.role.includes(q)||s.phone.includes(q));
+  const active=STAFF.filter(s=>s.status==='active').length;
+  document.getElementById('staff-list').innerHTML=`
+    <div style="background:#fff;padding:10px 14px;border-bottom:1px solid #eee;font-size:12px;color:#888;">
+      ${STAFF.length} staff members · ${active} active
+    </div>
+    `+filtered.map(s=>`
+    <div class="staff-tile" onclick="openStaff('${s.id}')">
+      <div class="avatar" style="background:${roleColor(s.role)};color:#fff;">${s.name[0]}</div>
+      <div style="flex:1">
+        <div class="t-title">${s.name}</div>
+        <div class="t-sub">${s.phone}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="role-badge role-${s.role}" style="margin-bottom:4px">${capitalize(s.role)}</div>
+        <div style="font-size:10px;color:${s.status==='active'?'#43A047':'#bbb'}">${s.status==='active'?'● Active':'○ Inactive'}</div>
+      </div>
+    </div>`).join('');
+}
+
+function openStaff(id){
+  currentStaff=STAFF.find(x=>x.id===id);
+  const s=currentStaff;
+  const btn=document.getElementById('staff-toggle-btn');
+  if(btn) btn.textContent=s.status==='active'?'⏸️':'▶️';
+  document.getElementById('staff-detail-body').innerHTML=`
+    <div class="cust-header" style="background:${roleColor(s.role)}">
+      <div class="cust-av">${s.name[0]}</div>
+      <div>
+        <div class="cust-name">${s.name}</div>
+        <div class="cust-phone">${s.phone}</div>
+        <span class="kyc-chip" style="background:rgba(255,255,255,.2);color:#fff;">${capitalize(s.role)}</span>
+      </div>
+    </div>
+    <div class="det-card" style="margin:12px">
+      <h3>Staff Info</h3>
+      <div class="det-row"><span>Role</span><span class="role-badge role-${s.role}">${capitalize(s.role)}</span></div>
+      <div class="det-row"><span>Phone / Login</span><span>${s.phone}</span></div>
+      <div class="det-row"><span>Status</span><span style="color:${s.status==='active'?'#43A047':'#999'};font-weight:600">${capitalize(s.status)}</span></div>
+      <div class="det-row"><span>Employee ID</span><span style="font-family:monospace">${s.id.toUpperCase()}</span></div>
+      <div class="det-row"><span>Date Joined</span><span>${s.joined}</span></div>
+    </div>
+    <div class="det-card" style="margin:0 12px 10px">
+      <h3>Activity</h3>
+      <div class="det-row"><span>Last Login</span><span>${s.last_login}</span></div>
+      ${s.sales>0?`<div class="det-row"><span>Bills Generated</span><span style="font-weight:700;color:var(--gold)">${s.sales}</span></div>`:''}
+    </div>
+    <div style="display:flex;gap:10px;padding:0 12px 16px;">
+      <button onclick="showToast('Change role – owner action','ok')" style="flex:1;height:44px;background:#f5f5f5;color:#333;border:none;border-radius:10px;font-size:12px;cursor:pointer;">🔄 Change Role</button>
+      <button onclick="toggleStaffStatus()" style="flex:1;height:44px;background:${s.status==='active'?'#ffebee':'#e8f5e9'};color:${s.status==='active'?'#E53935':'#43A047'};border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">${s.status==='active'?'⏸ Deactivate':'▶ Activate'}</button>
+    </div>
+  `;
+  goTo('s-staff-detail');
+}
+
+function toggleStaffStatus(){
+  if(!currentStaff) return;
+  currentStaff.status=currentStaff.status==='active'?'inactive':'active';
+  showToast(`${currentStaff.name} ${currentStaff.status==='active'?'activated':'deactivated'}`,'ok');
+  openStaff(currentStaff.id);
+}
+
+function saveStaff(){
+  const name=document.getElementById('ns-name')?.value.trim();
+  const phone=document.getElementById('ns-phone')?.value.trim();
+  const role=document.getElementById('ns-role')?.value;
+  if(!name){showToast('Enter staff name','err');return;}
+  if(!phone||phone.length!==10){showToast('Enter valid 10-digit phone','err');return;}
+  const newId='s'+(STAFF.length+1);
+  STAFF.push({id:newId,name,phone,role,status:'active',joined:'09 May 2026',last_login:'Never',sales:0});
+  document.getElementById('ns-name').value='';
+  document.getElementById('ns-phone').value='';
+  closeModal('add-staff-modal');
+  renderStaff();
+  showToast(`✅ ${name} added as ${capitalize(role)}`,'ok');
+}
+
+/* ── VENDORS ───────────────────────────────────── */
+let currentVendor = null;
+
+function vendorIcon(t){return {gold:'🥇',silver:'🥈',diamond:'💎',stones:'💠',mixed:'📦'}[t]||'🏪';}
+
+function renderVendors(){
+  const totalDue=VENDORS.reduce((s,v)=>s+v.balance,0);
+  document.getElementById('vendor-list').innerHTML=`
+    <div style="background:#fff;padding:10px 14px;border-bottom:1px solid #eee;font-size:12px;color:#888;">
+      ${VENDORS.length} vendors · Total due: <strong style="color:#E65100">₹${fmt(totalDue)}</strong>
+    </div>
+    `+VENDORS.map(v=>`
+    <div class="vendor-tile" onclick="openVendor('${v.id}')">
+      <div class="vendor-av">${vendorIcon(v.type)}</div>
+      <div style="flex:1">
+        <div class="t-title">${v.name}</div>
+        <div class="t-sub">${v.city} · ${capitalize(v.type)}</div>
+      </div>
+      <div style="text-align:right">
+        ${v.balance>0
+          ?`<div style="color:#E65100;font-size:12px;font-weight:700">Due ₹${fmt(v.balance)}</div>`
+          :'<div style="color:#43A047;font-size:11px;">✅ Cleared</div>'}
+        <div style="color:#bbb;font-size:10px;margin-top:2px">${v.last_order}</div>
+      </div>
+    </div>`).join('');
+}
+
+function openVendor(id){
+  currentVendor=VENDORS.find(x=>x.id===id);
+  const v=currentVendor;
+  document.getElementById('vendor-detail-body').innerHTML=`
+    <div class="cust-header" style="background:#37474F">
+      <div class="cust-av" style="border-radius:12px;font-size:28px;background:rgba(255,255,255,.15)">${vendorIcon(v.type)}</div>
+      <div>
+        <div class="cust-name">${v.name}</div>
+        <div class="cust-phone">${v.contact}</div>
+        <span class="kyc-chip">${capitalize(v.type)} Supplier</span>
+      </div>
+    </div>
+    <div class="det-card" style="margin:12px">
+      <h3>Vendor Info</h3>
+      <div class="det-row"><span>Contact</span><span>${v.contact}</span></div>
+      <div class="det-row"><span>City</span><span>${v.city}</span></div>
+      <div class="det-row"><span>Supply Type</span><span>${capitalize(v.type)}</span></div>
+      <div class="det-row"><span>GST Number</span><span style="font-family:monospace;font-size:11px">${v.gst}</span></div>
+      <div class="det-row"><span>Total Orders</span><span>${v.orders}</span></div>
+      <div class="det-row"><span>Last Order</span><span>${v.last_order}</span></div>
+      ${v.balance>0
+        ?`<div class="det-row"><span>Outstanding</span><span style="color:#E65100;font-weight:700">₹${fmt(v.balance)}</span></div>`
+        :'<div class="det-row"><span>Outstanding</span><span style="color:#43A047">₹0 — Cleared</span></div>'}
+    </div>
+    <div class="det-card" style="margin:0 12px 10px">
+      <h3>Actions</h3>
+      <div style="display:flex;gap:10px;margin-top:6px;">
+        <button onclick="showToast('Order placed to ${v.name}','ok')" style="flex:1;height:42px;background:var(--gold);color:var(--dark);border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">📦 Place Order</button>
+        <button onclick="recordVendorPayment('${v.id}')" style="flex:1;height:42px;background:${v.balance>0?'#e8f5e9':'#f5f5f5'};color:${v.balance>0?'#2e7d32':'#aaa'};border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">💳 Record Payment</button>
+      </div>
+      <button onclick="showToast('SMS sent to ${v.name}','ok')" style="width:100%;height:38px;background:transparent;border:1.5px solid #ddd;border-radius:8px;color:#555;font-size:12px;cursor:pointer;margin-top:8px;">📱 Send SMS</button>
+    </div>
+  `;
+  goTo('s-vendor-detail');
+}
+
+function recordVendorPayment(id){
+  const v=VENDORS.find(x=>x.id===id)||currentVendor;
+  if(!v) return;
+  if(v.balance===0){showToast('No outstanding balance','ok');return;}
+  const paid=v.balance;
+  v.balance=0;
+  ROKAR.entries.unshift({description:`Payment to ${v.name}`,entry_type:'cash_out',amount:paid,entry_date:'09 May 2026'});
+  ROKAR.total_cash_out+=paid;ROKAR.net_cash-=paid;
+  showToast(`✅ ₹${fmt(paid)} payment recorded for ${v.name}`,'ok');
+  openVendor(v.id);
+}
+
+function saveVendor(){
+  const name=document.getElementById('nv-name')?.value.trim();
+  const contact=document.getElementById('nv-contact')?.value.trim();
+  const city=document.getElementById('nv-city')?.value.trim();
+  const type=document.getElementById('nv-type')?.value;
+  if(!name){showToast('Enter vendor name','err');return;}
+  if(!contact){showToast('Enter contact number','err');return;}
+  const newId='v'+(VENDORS.length+1);
+  VENDORS.push({id:newId,name,contact,city:city||'—',type,gst:'—',balance:0,last_order:'09 May 2026',orders:0});
+  document.getElementById('nv-name').value='';
+  document.getElementById('nv-contact').value='';
+  closeModal('add-vendor-modal');
+  renderVendors();
+  showToast(`✅ Vendor "${name}" added`,'ok');
+}
+
+/* ── NEW SCHEME ────────────────────────────────── */
+function openNewSchemeForm(){
+  if(currentRole!=='owner'){showToast('Only owners can create schemes','err');return;}
+  openModal('new-scheme-modal');
+}
+
+function saveNewScheme(){
+  const name=document.getElementById('sch-name')?.value.trim();
+  const duration=parseInt(document.getElementById('sch-duration')?.value)||11;
+  const amount=parseFloat(document.getElementById('sch-amount')?.value)||0;
+  const type=document.getElementById('sch-type')?.value;
+  const bonus=document.getElementById('sch-bonus-sel')?.value==='yes';
+  const desc=document.getElementById('sch-desc')?.value.trim()||'Monthly savings scheme.';
+  if(!name){showToast('Enter scheme name','err');return;}
+  if(!amount||amount<=0){showToast('Enter monthly amount','err');return;}
+  SCHEMES.push({name,duration_months:duration,scheme_type:type,bonus_month:bonus,monthly_amount:amount,enrolled:0,description:desc});
+  document.getElementById('sch-name').value='';
+  document.getElementById('sch-amount').value='';
+  closeModal('new-scheme-modal');
+  renderSchemes();
+  showToast(`✅ Scheme "${name}" created`,'ok');
+}
+
+/* ── EDIT CUSTOMER ─────────────────────────────── */
+let currentViewedCustomer = null;
+
+function editCustomer(){
+  if(!currentViewedCustomer){showToast('No customer selected','err');return;}
+  const c=currentViewedCustomer;
+  document.getElementById('ec-name').value=c.name;
+  document.getElementById('ec-phone').value=c.phone.replace(/\D/g,'').slice(-10);
+  document.getElementById('ec-address').value=c.address;
+  document.getElementById('ec-city').value=c.city;
+  document.getElementById('ec-kyc').value=c.kyc_status==='verified'?'verified':'none';
+  openModal('edit-cust-modal');
+}
+
+function saveEditCustomer(){
+  if(!currentViewedCustomer) return;
+  const name=document.getElementById('ec-name')?.value.trim();
+  const phone=document.getElementById('ec-phone')?.value.trim();
+  if(!name){showToast('Name cannot be empty','err');return;}
+  currentViewedCustomer.name=name;
+  if(phone&&phone.length===10) currentViewedCustomer.phone='+91 '+phone.slice(0,5)+' '+phone.slice(5);
+  currentViewedCustomer.address=document.getElementById('ec-address')?.value.trim()||currentViewedCustomer.address;
+  currentViewedCustomer.city=document.getElementById('ec-city')?.value.trim()||currentViewedCustomer.city;
+  currentViewedCustomer.kyc_status=document.getElementById('ec-kyc')?.value;
+  closeModal('edit-cust-modal');
+  showToast('✅ Customer updated','ok');
+  openCustomer(currentViewedCustomer.id);
+}
+
+/* ── SCHEMES ────────────────────────────────────── */
+let selectedScheme=null;
+function renderSchemes(){
+  document.getElementById('schemes-list').innerHTML=`
+    <div style="padding:10px 12px;font-size:12px;color:#888;background:#fff8e1;border-bottom:1px solid #ffe082;">
+      💡 Customers enroll in monthly savings schemes. Redeem at maturity for jewellery purchases.
+    </div>
+    `+SCHEMES.map((s,i)=>`
+    <div class="scheme-card" onclick="openScheme(${i})" style="cursor:pointer;">
+      <div class="s-icon">${s.scheme_type==='gold'?'🥇':s.scheme_type==='silver'?'🥈':s.scheme_type==='diamond'?'💎':'🎁'}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700;color:var(--dark)">${s.name}</div>
+        <div style="font-size:12px;color:#888;margin-top:2px">${s.duration_months} months · ₹${fmt(s.monthly_amount)}/month</div>
+        <div style="font-size:11px;color:#aaa;margin-top:2px">${s.enrolled} customers enrolled</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        ${s.bonus_month?'<span class="chip" style="font-size:10px;">Bonus Month</span>':''}
+        <span style="color:#ccc;font-size:16px;">›</span>
+      </div>
+    </div>`).join('');
+}
+
+function openScheme(idx){
+  selectedScheme=SCHEMES[idx];
+  const s=selectedScheme;
+  document.getElementById('scheme-modal-title').textContent=s.name;
+  document.getElementById('scheme-modal-body').innerHTML=`
+    <p style="font-size:13px;color:#555;margin-bottom:12px;">${s.description}</p>
+    <div class="enroll-row"><span>Duration</span><strong>${s.duration_months} months${s.bonus_month?' + 1 bonus':''}</strong></div>
+    <div class="enroll-row"><span>Monthly Amount</span><strong style="color:var(--gold)">₹${fmt(s.monthly_amount)}</strong></div>
+    <div class="enroll-row"><span>Total Savings</span><strong>₹${fmt(s.monthly_amount*(s.duration_months+(s.bonus_month?1:0)))}</strong></div>
+    <div class="enroll-row"><span>Type</span><strong style="text-transform:capitalize">${s.scheme_type}</strong></div>
+    <div class="enroll-row"><span>Currently Enrolled</span><strong>${s.enrolled} customers</strong></div>
+    <div style="margin:12px 0;background:#e8f5e9;border-radius:8px;padding:10px;font-size:12px;color:#2e7d32;">
+      ✅ Customer can redeem accumulated amount (+ bonus) against any jewellery purchase at maturity.
+    </div>
+    <div style="margin-bottom:8px;font-size:12px;color:#666;">Select customer to enroll:</div>
+    <select id="scheme-enroll-cust" style="width:100%;height:40px;border:1.5px solid #ddd;border-radius:8px;padding:0 10px;font-size:13px;outline:none;background:#fafafa;">
+      <option value="">— Select customer —</option>
+      ${CUSTOMERS.map(c=>`<option value="${c.id}">${c.name} (${c.phone})</option>`).join('')}
+    </select>
+  `;
+  openModal('scheme-modal');
+}
+
+function enrollScheme(){
+  const custId=document.getElementById('scheme-enroll-cust')?.value;
+  if(!custId){showToast('Select a customer to enroll','err');return;}
+  const c=CUSTOMERS.find(x=>x.id===custId);
+  if(c&&selectedScheme&&!c.schemes.includes(selectedScheme.name)){
+    c.schemes.push(selectedScheme.name);
+    selectedScheme.enrolled++;
+  }
+  closeModal('scheme-modal');
+  showToast(`✅ ${c.name} enrolled in ${selectedScheme.name}`,'ok');
+  renderSchemes();
+}
+
+/* ── TOAST ─────────────────────────────────────── */
+function showToast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className=`toast show ${type}`;
+  setTimeout(()=>t.className='toast',2200);
+}
+
+/* ── INIT ───────────────────────────────────────── */
+updatePakkaCart();
+updateKachaCart();
+</script>
+</body>
+</html>
